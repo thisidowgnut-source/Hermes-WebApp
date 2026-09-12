@@ -27,12 +27,12 @@ logger = logging.getLogger("hermes.dohnut_mission_control")
 router = APIRouter(prefix="/api/dohnut", tags=["dohnut"])
 
 WEBBRIDGE_URL = "http://127.0.0.1:10087"
-WEBBRIDGE_KEY = "8b0494ab08dab3b140b65607451a59c2182c3146a329f6fb4794cfbbab071be7"
+WEBBRIDGE_KEY = os.getenv("WEBBRIDGE_KEY", "")  # 12-Factor III: config dalam environment, bukan kod
 DISPATCHER_SCRIPT = r"C:\Users\megat\Scripts\ai_labs_dispatcher.py"
 BRIDGE_SCRIPT = r"C:\Users\megat\Scripts\hermes_agy_bridge.py"
 
-# Path to social database
-DB_PATH = os.path.join(config.BASE_DIR, "social_autopilot.db")
+# Path to social database (FHS 3.0: /var/lib = persistent state)
+DB_PATH = os.path.join(config.BASE_DIR, "var", "lib", "social_autopilot.db")
 
 class SocialCampaignRequest(BaseModel):
     topic: str
