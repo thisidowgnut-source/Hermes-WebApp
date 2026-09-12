@@ -478,9 +478,20 @@
         /* ============================================
            SHARED UTILITIES
            ============================================ */
+        /* Rock-Solid Button Engine (Emil Kowalski Tactile Standard - Anti-Jitter) */
+        button, .btn-action, .dock-item {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button.glass, .btn-action.glass {
+            transform: none !important;
+            transition: background 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out, transform 100ms ease-out !important;
+        }
+
         .btn-action {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             color: #fff;
             font-family: 'Inter', sans-serif;
@@ -489,20 +500,32 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
             cursor: pointer;
-            transition: background 0.2s, border-color 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
+            user-select: none;
+            -webkit-user-select: none;
+            transform: none;
+            transition: background 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out, transform 100ms ease-out;
         }
 
-        .btn-action:active {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.15);
+        @media (hover: hover) and (pointer: fine) {
+            .btn-action:hover {
+                background: rgba(255, 255, 255, 0.09);
+                border-color: rgba(255, 255, 255, 0.2);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            }
         }
 
-        .btn-action:focus-visible {
-            outline: 2px solid rgba(255, 255, 255, 0.4);
+        .btn-action:active, button.glass:active {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: scale(0.97) !important;
+        }
+
+        .btn-action:focus-visible, .btn-primary:focus-visible {
+            outline: 2px solid rgba(255, 255, 255, 0.6);
             outline-offset: 2px;
         }
 
@@ -514,15 +537,46 @@
         .btn-primary {
             background: #fff;
             color: #000;
-            border-color: #fff;
+            border: 1px solid #fff;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 150ms ease-out, box-shadow 150ms ease-out, transform 100ms ease-out;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .btn-primary:hover {
+                background: #f0f0f0;
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            }
         }
 
         .btn-primary:active {
-            background: #ddd;
+            background: #d4d4d4;
+            transform: scale(0.97) !important;
         }
 
-        .btn-primary:focus-visible {
-            outline-color: #fff;
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15) !important;
+            border: 1px solid rgba(239, 68, 68, 0.4) !important;
+            color: #fca5a5 !important;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .btn-danger:hover {
+                background: rgba(239, 68, 68, 0.25) !important;
+                border-color: rgba(239, 68, 68, 0.6) !important;
+                box-shadow: 0 0 12px rgba(239, 68, 68, 0.25) !important;
+            }
+        }
+
+        .btn-danger:active {
+            transform: scale(0.97) !important;
+        }
+
+        .dock-item:active {
+            transform: scale(0.94) !important;
+            transition: transform 100ms ease-out !important;
         }
 
         #terminal-container {
@@ -674,27 +728,27 @@
             <span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7);">1-Tap Action Launchers</span>
         </div>
         <div style="position: relative; z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-            <button onclick="executeDirectHermesCommandText('Run full codebase audit and fix all lint/bugs')" class="btn-action glass" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
+            <button onclick="executeDirectHermesCommandText('Run full codebase audit and fix all lint/bugs')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
                 <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #4ade80;"></i>
                 <span style="font-size: 8px; font-weight: 700; color: #fff;">Audit & Fix</span>
             </button>
-            <button onclick="executeDirectHermesCommandText('Run pytest suite on tests/')" class="btn-action glass" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
+            <button onclick="executeDirectHermesCommandText('Run pytest suite on tests/')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
                 <i data-lucide="play" style="width: 16px; height: 16px; color: #38bdf8;"></i>
                 <span style="font-size: 8px; font-weight: 700; color: #fff;">Run Pytest</span>
             </button>
-            <button onclick="triggerMacro('cleanup_zombies')" class="btn-action glass" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
+            <button onclick="triggerMacro('cleanup_zombies')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
                 <i data-lucide="skull" style="width: 16px; height: 16px; color: #ff79c6;"></i>
                 <span style="font-size: 8px; font-weight: 700; color: #fff;">Kill Zombies</span>
             </button>
-            <button onclick="executeDirectHermesCommandText('Sync Obsidian Vault MOC and rebuild wikilinks')" class="btn-action glass" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
+            <button onclick="executeDirectHermesCommandText('Sync Obsidian Vault MOC and rebuild wikilinks')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
                 <i data-lucide="book-open" style="width: 16px; height: 16px; color: #c084fc;"></i>
                 <span style="font-size: 8px; font-weight: 700; color: #fff;">Sync Vault</span>
             </button>
-            <button onclick="quickSpawnAgent()" class="btn-action glass" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
+            <button onclick="quickSpawnAgent()" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
                 <i data-lucide="bot" style="width: 16px; height: 16px; color: #a855f7;"></i>
                 <span style="font-size: 8px; font-weight: 700; color: #fff;">Spawn Swarm</span>
             </button>
-            <button onclick="triggerMacro('sync_webhook')" class="btn-action glass" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
+            <button onclick="triggerMacro('sync_webhook')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
                 <i data-lucide="link-2" style="width: 16px; height: 16px; color: #50fa7b;"></i>
                 <span style="font-size: 8px; font-weight: 700; color: #fff;">Sync Tunnel</span>
             </button>
@@ -765,25 +819,25 @@
 
     <!-- QUICK ACTIONS (Cyber-Command Grid) -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex-shrink: 0;">
-        <button onclick="triggerMacro('clean_temp')" class="glass btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Clean temporary files">
+        <button onclick="triggerMacro('clean_temp')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Clean temporary files">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <i data-lucide="trash-2" style="position: relative; z-index: 2; width: 14px; height: 14px; color: #ff5555;"></i>
             <span style="position: relative; z-index: 2; font-size: 8px;">Clean Temp</span>
         </button>
-        <button onclick="triggerMacro('lock_pc')" class="glass btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Lock PC">
+        <button onclick="triggerMacro('lock_pc')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Lock PC">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <i data-lucide="lock" style="position: relative; z-index: 2; width: 14px; height: 14px; color: #ffb86c;"></i>
             <span style="position: relative; z-index: 2; font-size: 8px;">Lock PC</span>
         </button>
-        <button onclick="triggerMacro('cleanup_zombies')" class="glass btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Kill Zombies">
+        <button onclick="triggerMacro('cleanup_zombies')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Kill Zombies">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <i data-lucide="skull" style="position: relative; z-index: 2; width: 14px; height: 14px; color: #ff79c6;"></i>
             <span style="position: relative; z-index: 2; font-size: 8px;">Kill Zombies</span>
         </button>
-        <button onclick="triggerMacro('sync_webhook')" class="glass btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Sync Tunnel">
+        <button onclick="triggerMacro('sync_webhook')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Sync Tunnel">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <i data-lucide="link-2" style="position: relative; z-index: 2; width: 14px; height: 14px; color: #50fa7b;"></i>
@@ -1132,7 +1186,7 @@
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Refresh to scan</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px;">
-        <button onclick="fetchProcesses(this)" class="glass btn-action" style="width: 100%; padding: 14px;">
+        <button onclick="fetchProcesses(this)" class="btn-action" style="width: 100%; padding: 14px;">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1165,12 +1219,12 @@
 
     <!-- PRESET COMMAND CHIPS TOOLBAR (1-Tap ReactBits Quick Bar) -->
     <div style="padding: 8px 12px; background: rgba(0, 0, 0, 0.6); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; touch-action: pan-x;">
-        <button onclick="sendQuickTermCmd('clear')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #a7f3d0; border-color: rgba(52, 211, 153, 0.3); flex-shrink: 0;">🧹 clear</button>
-        <button onclick="sendQuickTermCmd('Get-ChildItem')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #93c5fd; border-color: rgba(147, 197, 253, 0.3); flex-shrink: 0;">📁 ls / dir</button>
-        <button onclick="sendQuickTermCmd('C:\\Users\\megat\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe -m pytest tests/')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #fde047; border-color: rgba(253, 224, 71, 0.3); flex-shrink: 0;">🧪 pytest</button>
-        <button onclick="sendQuickTermCmd('Get-Process | Sort-Object CPU -Descending | Select-Object -First 10')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #f472b6; border-color: rgba(244, 114, 182, 0.3); flex-shrink: 0;">📊 top cpu</button>
-        <button onclick="sendQuickTermCmd('git status')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #c084fc; border-color: rgba(192, 132, 252, 0.3); flex-shrink: 0;">🌿 git status</button>
-        <button onclick="sendQuickTermCmd('Get-NetTCPConnection -State Listen')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">🌐 netstat</button>
+        <button onclick="sendQuickTermCmd('clear')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #a7f3d0; border-color: rgba(52, 211, 153, 0.3); flex-shrink: 0;">🧹 clear</button>
+        <button onclick="sendQuickTermCmd('Get-ChildItem')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #93c5fd; border-color: rgba(147, 197, 253, 0.3); flex-shrink: 0;">📁 ls / dir</button>
+        <button onclick="sendQuickTermCmd('C:\\Users\\megat\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe -m pytest tests/')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #fde047; border-color: rgba(253, 224, 71, 0.3); flex-shrink: 0;">🧪 pytest</button>
+        <button onclick="sendQuickTermCmd('Get-Process | Sort-Object CPU -Descending | Select-Object -First 10')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #f472b6; border-color: rgba(244, 114, 182, 0.3); flex-shrink: 0;">📊 top cpu</button>
+        <button onclick="sendQuickTermCmd('git status')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #c084fc; border-color: rgba(192, 132, 252, 0.3); flex-shrink: 0;">🌿 git status</button>
+        <button onclick="sendQuickTermCmd('Get-NetTCPConnection -State Listen')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">🌐 netstat</button>
     </div>
 
     <!-- TERMINAL CANVAS CONTAINER -->
@@ -1185,31 +1239,31 @@
         <div style="display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; background: rgba(0,0,0,0.6); padding: 6px; border-radius: 8px; border: 1px solid rgba(168, 85, 247, 0.2);">
             <!-- Row 1: Controls & Navigation -->
             <div style="display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x;">
-                <button onclick="sendSpecialKey('esc')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #f43f5e; border-color: rgba(244, 63, 94, 0.4); flex-shrink: 0;">ESC</button>
-                <button onclick="sendSpecialKey('tab')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); flex-shrink: 0;">TAB</button>
-                <button onclick="sendSpecialKey('ctrl+c')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); flex-shrink: 0;">CTRL+C</button>
-                <button onclick="sendSpecialKey('ctrl+z')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); flex-shrink: 0;">CTRL+Z</button>
-                <button onclick="sendSpecialKey('ctrl+l')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a855f7; border-color: rgba(168, 85, 247, 0.4); flex-shrink: 0;">CTRL+L</button>
-                <button onclick="sendSpecialKey('up')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">▲ UP</button>
-                <button onclick="sendSpecialKey('down')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">▼ DOWN</button>
-                <button onclick="sendSpecialKey('left')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">◄ LEFT</button>
-                <button onclick="sendSpecialKey('right')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">► RIGHT</button>
-                <button onclick="sendSpecialKey('home')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a3e635; flex-shrink: 0;">HOME</button>
-                <button onclick="sendSpecialKey('end')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a3e635; flex-shrink: 0;">END</button>
-                <button onclick="sendSpecialKey('clear')" class="btn-action glass" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #c084fc; flex-shrink: 0;">CLEAR</button>
+                <button onclick="sendSpecialKey('esc')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #f43f5e; border-color: rgba(244, 63, 94, 0.4); flex-shrink: 0;">ESC</button>
+                <button onclick="sendSpecialKey('tab')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); flex-shrink: 0;">TAB</button>
+                <button onclick="sendSpecialKey('ctrl+c')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); flex-shrink: 0;">CTRL+C</button>
+                <button onclick="sendSpecialKey('ctrl+z')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); flex-shrink: 0;">CTRL+Z</button>
+                <button onclick="sendSpecialKey('ctrl+l')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a855f7; border-color: rgba(168, 85, 247, 0.4); flex-shrink: 0;">CTRL+L</button>
+                <button onclick="sendSpecialKey('up')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">▲ UP</button>
+                <button onclick="sendSpecialKey('down')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">▼ DOWN</button>
+                <button onclick="sendSpecialKey('left')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">◄ LEFT</button>
+                <button onclick="sendSpecialKey('right')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">► RIGHT</button>
+                <button onclick="sendSpecialKey('home')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a3e635; flex-shrink: 0;">HOME</button>
+                <button onclick="sendSpecialKey('end')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a3e635; flex-shrink: 0;">END</button>
+                <button onclick="sendSpecialKey('clear')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #c084fc; flex-shrink: 0;">CLEAR</button>
             </div>
             <!-- Row 2: Syntax & Symbols -->
             <div style="display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x;">
-                <button onclick="sendSpecialKey('|')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a855f7; border-color: rgba(168, 85, 247, 0.3); flex-shrink: 0;">|</button>
-                <button onclick="sendSpecialKey('/')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">/</button>
-                <button onclick="sendSpecialKey('-')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">-</button>
-                <button onclick="sendSpecialKey('~')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a3e635; flex-shrink: 0;">~</button>
-                <button onclick="sendSpecialKey('\\')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #fbbf24; flex-shrink: 0;">\</button>
-                <button onclick="sendSpecialKey('&')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #f43f5e; flex-shrink: 0;">&amp;</button>
-                <button onclick="sendSpecialKey('>')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #38bdf8; flex-shrink: 0;">&gt;</button>
-                <button onclick="sendSpecialKey('$')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a3e635; flex-shrink: 0;">$</button>
-                <button onclick="sendSpecialKey('*')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #fbbf24; flex-shrink: 0;">*</button>
-                <button onclick="sendSpecialKey('&quot;')" class="btn-action glass" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">"</button>
+                <button onclick="sendSpecialKey('|')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a855f7; border-color: rgba(168, 85, 247, 0.3); flex-shrink: 0;">|</button>
+                <button onclick="sendSpecialKey('/')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">/</button>
+                <button onclick="sendSpecialKey('-')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">-</button>
+                <button onclick="sendSpecialKey('~')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a3e635; flex-shrink: 0;">~</button>
+                <button onclick="sendSpecialKey('\\')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #fbbf24; flex-shrink: 0;">\</button>
+                <button onclick="sendSpecialKey('&')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #f43f5e; flex-shrink: 0;">&amp;</button>
+                <button onclick="sendSpecialKey('>')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #38bdf8; flex-shrink: 0;">&gt;</button>
+                <button onclick="sendSpecialKey('$')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a3e635; flex-shrink: 0;">$</button>
+                <button onclick="sendSpecialKey('*')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #fbbf24; flex-shrink: 0;">*</button>
+                <button onclick="sendSpecialKey('&quot;')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">"</button>
             </div>
         </div>
 
@@ -1240,10 +1294,10 @@
 
         <!-- 1-TAP QUICK URL CHIPS -->
         <div style="display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; touch-action: pan-x;">
-            <button onclick="quickNavBrowser('https://www.google.com')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #a7f3d0; border-color: rgba(52, 211, 153, 0.3); flex-shrink: 0;">🌐 Google</button>
-            <button onclick="quickNavBrowser('https://github.com')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #c084fc; border-color: rgba(192, 132, 252, 0.3); flex-shrink: 0;">🐙 GitHub</button>
-            <button onclick="quickNavBrowser('http://127.0.0.1:9230/api/stats')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">🦅 Hermes API</button>
-            <button onclick="quickNavBrowser('http://127.0.0.1:11434')" class="btn-action glass" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #fde047; border-color: rgba(253, 224, 71, 0.3); flex-shrink: 0;">🤖 Ollama API</button>
+            <button onclick="quickNavBrowser('https://www.google.com')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #a7f3d0; border-color: rgba(52, 211, 153, 0.3); flex-shrink: 0;">🌐 Google</button>
+            <button onclick="quickNavBrowser('https://github.com')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #c084fc; border-color: rgba(192, 132, 252, 0.3); flex-shrink: 0;">🐙 GitHub</button>
+            <button onclick="quickNavBrowser('http://127.0.0.1:9230/api/stats')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">🦅 Hermes API</button>
+            <button onclick="quickNavBrowser('http://127.0.0.1:11434')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #fde047; border-color: rgba(253, 224, 71, 0.3); flex-shrink: 0;">🤖 Ollama API</button>
         </div>
 
         <!-- LIVE STREAM VIEWPORT & FLOATING BADGE -->
@@ -1271,8 +1325,8 @@
         <div style="text-align: center; color: rgba(255,255,255,0.4); font-size: 11px;">Scanning drive...</div>
     </div>
     <div style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.04); display: flex; gap: 8px; flex-shrink: 0;">
-        <button onclick="fetchFiles('C:\\')" class="glass btn-action" style="flex: 1; padding: 10px;">C:\ Drive</button>
-        <button onclick="fetchFiles('C:\\Users\\megat\\Hermes-WebApp')" class="glass btn-action" style="flex: 1; padding: 10px;">Hermes Root</button>
+        <button onclick="fetchFiles('C:\\')" class="btn-action" style="flex: 1; padding: 10px;">C:\ Drive</button>
+        <button onclick="fetchFiles('C:\\Users\\megat\\Hermes-WebApp')" class="btn-action" style="flex: 1; padding: 10px;">Hermes Root</button>
     </div>
 </div>
 
@@ -1286,7 +1340,7 @@
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Refresh to load kanban.db</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px;">
-        <button onclick="fetchKanbanTasks(this)" class="glass btn-action" style="width: 100%; padding: 14px;">
+        <button onclick="fetchKanbanTasks(this)" class="btn-action" style="width: 100%; padding: 14px;">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1367,14 +1421,14 @@
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Scan to enumerate network connections</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px; display: flex; gap: 8px;">
-        <button onclick="fetchNetScan()" class="glass btn-action" style="flex: 1; padding: 14px;">
+        <button onclick="fetchNetScan()" class="btn-action" style="flex: 1; padding: 14px;">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 <i data-lucide="radar" style="width: 12px; height: 12px;"></i> Scan Ports
             </div>
         </button>
-        <button onclick="fetchEnvInfo()" class="glass btn-action" style="flex: 1; padding: 14px;">
+        <button onclick="fetchEnvInfo()" class="btn-action" style="flex: 1; padding: 14px;">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1397,7 +1451,7 @@
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Scan to run threat heuristics</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px;">
-        <button onclick="fetchThreatScan()" class="glass btn-action" style="width: 100%; padding: 14px;">
+        <button onclick="fetchThreatScan()" class="btn-action" style="width: 100%; padding: 14px;">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1419,7 +1473,7 @@
     <div style="flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 0;">
         <div style="display: flex; gap: 8px; flex-shrink: 0;">
             <input type="text" id="editor-filepath" autocomplete="off" spellcheck="false" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #fff; border-radius: 8px; padding: 10px 14px; font-size: 11px; font-family: 'JetBrains Mono', monospace; outline: none;" placeholder="File path (e.g. C:\Users\megat\Hermes-WebApp\PROJECT.md)" aria-label="File path input">
-            <button onclick="loadFileToEditor()" class="glass btn-action" style="padding: 10px 14px; font-size: 10px;"><i data-lucide="file-input" style="width: 12px; height: 12px;"></i> Load</button>
+            <button onclick="loadFileToEditor()" class="btn-action" style="padding: 10px 14px; font-size: 10px;"><i data-lucide="file-input" style="width: 12px; height: 12px;"></i> Load</button>
         </div>
         <div style="flex: 1; position: relative; display: flex; flex-direction: column; min-height: 0;">
             <textarea id="editor-content" aria-label="Editor content" spellcheck="false" style="flex: 1; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #a3e635; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 12px; resize: none; outline: none; line-height: 1.5;" placeholder="// Select a file from File Explorer or enter path above to edit..."></textarea>
@@ -1443,7 +1497,7 @@
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Refresh to scan OS services</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px;">
-        <button onclick="fetchServicesList()" class="glass btn-action" style="width: 100%; padding: 14px;">
+        <button onclick="fetchServicesList()" class="btn-action" style="width: 100%; padding: 14px;">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
             <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1472,7 +1526,7 @@
     <!-- FIM Panel -->
     <div id="forensics-panel-fim" style="flex: 1; display: flex; flex-direction: column; padding: 16px; gap: 10px; overflow-y: auto;">
         <div style="display: flex; gap: 8px;">
-            <button onclick="createFimBaseline()" class="glass btn-action" style="flex: 1; padding: 10px; font-size: 10px;"><i data-lucide="save" style="width: 12px; height: 12px;"></i> Create Hash Baseline</button>
+            <button onclick="createFimBaseline()" class="btn-action" style="flex: 1; padding: 10px; font-size: 10px;"><i data-lucide="save" style="width: 12px; height: 12px;"></i> Create Hash Baseline</button>
             <button onclick="fetchFimScan()" class="btn-primary btn-action" style="flex: 1; padding: 10px; font-size: 10px;"><i data-lucide="scan" style="width: 12px; height: 12px;"></i> Scan SHA-256 Hashes</button>
         </div>
         <div id="fim-results" style="flex: 1; overflow-y: auto;">
@@ -2189,13 +2243,11 @@
             this.el.style.setProperty('--glow-y', `${relY}%`);
             this.el.style.setProperty('--glow-intensity', '1');
 
-            // 3D Tilt & Magnetism
-            const rotateX = ((y - centerY) / centerY) * -3;
-            const rotateY = ((x - centerX) / centerX) * 3;
-            const magnetX = (x - centerX) * 0.04;
-            const magnetY = (y - centerY) * 0.04;
+            // Subtle 3D Tilt (No positional translation to prevent jitter)
+            const rotateX = ((y - centerY) / centerY) * -1.5;
+            const rotateY = ((x - centerX) / centerX) * 1.5;
 
-            this.el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translate(${magnetX}px, ${magnetY}px)`;
+            this.el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         }
 
         onMouseLeave() {
@@ -2232,7 +2284,8 @@
         }
     }
 
-    document.querySelectorAll('.glass').forEach(card => new MagicBento(card));
+    // Only apply MagicBento to cards/containers with particle containers, NEVER to buttons or controls
+    document.querySelectorAll('.glass:not(button):not(.btn-action):not(.dock-item):not(a):not(input)').forEach(card => new MagicBento(card));
 
     // ============================================
     // 5. ROTATING TEXT LOGIC (Vanilla JS Port)
@@ -4822,8 +4875,8 @@
 </style>
 
 <script>
-    // MagicUI Bento Grid Spotlight Logic
-    document.querySelectorAll('.glass').forEach(card => {
+    // MagicUI Bento Grid Spotlight Logic (Exclude buttons to maintain high performance)
+    document.querySelectorAll('.glass:not(button):not(.btn-action):not(.dock-item)').forEach(card => {
         card.addEventListener('mousemove', e => {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
