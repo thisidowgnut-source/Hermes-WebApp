@@ -22,6 +22,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 
 from backend.config import config
+from backend.services import dohnut_link
 
 logger = logging.getLogger("hermes.dohnut_mission_control")
 router = APIRouter(prefix="/api/dohnut", tags=["dohnut"])
@@ -51,9 +52,10 @@ class AILabsDispatchRequest(BaseModel):
 
 @router.get("/stats")
 def get_dohnut_stats():
-    """Returns live Doh-Nut storefront and operations statistics."""
-    # Simulated high-fidelity state synced with G:\Doh-Nut Next.js 16 storefront
-    return {
+    """Doh-Nut storefront stats: seed fallback + live Vercel catalog when reachable."""
+    # Seed fallback (synced with G:\Doh-Nut Next.js 16 storefront); the real
+    # catalog is merged from the live Vercel API below (fail-soft).
+    stats = {
         "ok": True,
         "store_name": "DOH-NUT HQ (Good Vibe. Good Doh.)",
         "currency": "RM",
@@ -95,6 +97,16 @@ def get_dohnut_stats():
             ]
         }
     }
+
+    # 12-Factor backing services: pull real catalog data from the deployed
+    # storefront (Vercel). Fail-soft — seed data above stays the fallback.
+    try:
+        live = dohnut_link.build_live_section()
+        if live:
+            stats["live"] = live
+    except Exception:
+        pass
+    return stats
 
 @router.get("/social/accounts")
 def get_social_accounts():
