@@ -1,0 +1,465 @@
+        // Module management
+        let activeModule = null;
+
+        function openModule(moduleId, element) {
+            // Close all modules first
+            document.querySelectorAll('.module-overlay').forEach(mod => {
+                mod.classList.remove('active');
+                mod.setAttribute('aria-hidden', 'true');
+            });
+            
+            // Remove active class from all dock items
+            document.querySelectorAll('.dock-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // If clicking the same module that's open, close it
+            if (activeModule === moduleId) {
+                activeModule = null;
+                if(element) element.classList.remove('active');
+                return;
+            }
+            
+            // Set new active module
+            activeModule = moduleId;
+            
+            // Highlight the clicked dock item
+            if(element) element.classList.add('active');
+            
+            // Open the requested module
+            const module = document.getElementById(`mod-${moduleId}`);
+            if (module) {
+                module.classList.add('active');
+                module.setAttribute('aria-hidden', 'false');
+                module.focus();
+                
+                // Initialize module-specific functionality
+                switch(moduleId) {
+                    case 'terminal':
+                        initTerminal();
+                        break;
+                    case 'browser':
+                        initBrowser();
+                        break;
+                    case 'audio':
+                        startStemCanvasVisualizer();
+                        break;
+                }
+            }
+        }
+
+        function closeAllModules() {
+            document.querySelectorAll('.module-overlay').forEach(mod => {
+                mod.classList.remove('active');
+                mod.setAttribute('aria-hidden', 'true');
+            });
+            
+            document.querySelectorAll('.dock-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            activeModule = null;
+        }
+
+        // Terminal initialization
+        function initTerminal() {
+            const container = document.getElementById('terminal-container');
+            if (!container || window.term) return;
+            
+            window.term = new Terminal({
+                cursorBlink: true,
+                theme: {
+                    background: '#000000',
+                    foreground: '#ffffff',
+                    cursor: '#ffffff',
+                    selection: '#ffffff44'
+                }
+            });
+            
+            window.term.open(container);
+            window.term.write('Hermes OS Terminal Initialized\r\n');
+            window.term.write('$ ');
+            
+            window.term.onData(data => {
+                window.term.write(data);
+            });
+        }
+
+        // Browser module initialization
+        function initBrowser() {
+            // Placeholder for browser functionality
+            const container = document.getElementById('browser-frame-container');
+            container.innerHTML = `
+                <div style="text-align: center; color: rgba(255,255,255,0.4); padding: 20px;">
+                    <i data-lucide="globe" style="width: 48px; height: 48px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;"></i>
+                    <p>Browser automation interface</p>
+                    <p style="font-size: 12px; margin-top: 10px;">Enter URL above to start</p>
+                </div>
+            `;
+            lucide.createIcons({ root: container });
+        }
+
+        // WebSocket connection status
+        let wsStatus = 'connecting';
+        let wsStatusInterval;
+
+        function updateWsStatus() {
+            const statusDot = document.getElementById('ws-status-dot');
+            const statusText = document.getElementById('status-text');
+            
+            if (!statusDot || !statusText) return;
+            
+            switch(wsStatus) {
+                case 'connected':
+                    statusDot.className = 'status-dot';
+                    statusText.textContent = 'Connected';
+                    break;
+                case 'connecting':
+                    statusDot.className = 'status-dot warning';
+                    statusText.textContent = 'Connecting...';
+                    break;
+                case 'disconnected':
+                    statusDot.className = 'status-dot critical';
+                    statusText.textContent = 'Disconnected';
+                    break;
+            }
+        }
+
+        // Initialize WebSocket status
+        function initWsStatus() {
+            wsStatus = 'connected'; // Simulate connected state
+            updateWsStatus();
+            
+            // Update status periodically
+            wsStatusInterval = setInterval(updateWsStatus, 5000);
+        }
+
+        // Simulated stats fetching
+        function fetchStats() {
+            // Simulate fetching system stats
+            const cpuPercent = Math.floor(Math.random() * 100);
+            const ramUsed = (Math.random() * 16).toFixed(1);
+            const diskUsed = (Math.random() * 500).toFixed(1);
+            const uptime = Math.floor(Math.random() * 100000);
+            const processCount = Math.floor(Math.random() * 50) + 10;
+            
+            // Update CPU gauge
+            document.getElementById('cpu-label').textContent = `${cpuPercent}%`;
+            const cpuRing = document.getElementById('cpu-ring');
+            if (cpuRing) {
+                cpuRing.setAttribute('stroke-dasharray', `${cpuPercent}, 100`);
+            }
+            
+            // Update RAM gauge
+            document.getElementById('ram-label').textContent = `${ramUsed}GB`;
+            const ramRing = document.getElementById('ram-ring');
+            if (ramRing) {
+                const ramPercent = Math.min(100, (ramUsed / 16) * 100);
+                ramRing.setAttribute('stroke-dasharray', `${ramPercent.toFixed(0)}, 100`);
+            }
+            
+            // Update Disk gauge
+            document.getElementById('disk-label').textContent = `${diskUsed}GB`;
+            const diskRing = document.getElementById('disk-ring');
+            if (diskRing) {
+                const diskPercent = Math.min(100, (diskUsed / 500) * 100);
+                diskRing.setAttribute('stroke-dasharray', `${diskPercent.toFixed(0)}, 100`);
+            }
+            
+            // Update other stats
+            document.getElementById('cpu-status').textContent = `${cpuPercent}%`;
+            document.getElementById('ram-status').textContent = `${ramUsed}GB`;
+            document.getElementById('uptime-display').textContent = `${uptime}s`;
+            document.getElementById('process-count').textContent = processCount;
+            
+            showToast('System stats refreshed', 'success');
+        }
+
+        // Simulated log fetching
+        function fetchLogs() {
+            const logsContainer = document.getElementById('agent-logs');
+            if (!logsContainer) return;
+            
+            const logTypes = ['agent', 'system', 'error'];
+            const logMessages = [
+                'Swarm agent initialized',
+                'Connection established to backend',
+                'Processing user command',
+                'System metrics updated',
+                'File operation completed',
+                'Browser automation started',
+                'Audio stream connected',
+                'Security scan completed'
+            ];
+            
+            const randomLog = () => {
+                const type = logTypes[Math.floor(Math.random() * logTypes.length)];
+                const message = logMessages[Math.floor(Math.random() * logMessages.length)];
+                const time = new Date().toLocaleTimeString();
+                
+                return {
+                    type,
+                    message,
+                    time
+                };
+            };
+            
+            // Add new log entry
+            const newLog = randomLog();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${newLog.type}`;
+            logEntry.innerHTML = `<span>[${newLog.time}]</span> ${escapeHtml(newLog.message)}`;
+            
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+            
+            // Limit to 10 log entries
+            if (logsContainer.children.length > 10) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+
+        // Macro functions
+        function triggerMacro(macroName) {
+            const macroNames = {
+                'clean_temp': 'Clean Temp Files',
+                'lock_pc': 'Lock Computer',
+                'cleanup_zombies': 'Cleanup Zombie Processes',
+                'clear_queue': 'Clear Task Queue'
+            };
+            
+            showToast(`Executing: ${macroNames[macroName] || macroName}`, 'info');
+            
+            // Simulate macro execution
+            setTimeout(() => {
+                showToast(`${macroNames[macroName] || macroName} completed successfully`, 'success');
+            }, 1000);
+        }
+
+        // Voice command simulation
+        function toggleVoiceRecording() {
+            const btn = document.getElementById('voice-main-mic-btn');
+            if (!btn) return;
+            
+            if (btn.textContent.includes('Start')) {
+                btn.innerHTML = '🛑 Stop Listening';
+                btn.style.background = 'rgba(239, 68, 68, 0.25)';
+                btn.style.color = '#fca5a5';
+                showToast('Voice recording started', 'info');
+            } else {
+                btn.innerHTML = '🎤 Start Listening';
+                btn.style.background = 'rgba(59,130,246,0.2)';
+                btn.style.color = '#93c5fd';
+                showToast('Voice recording stopped', 'info');
+            }
+        }
+
+        // Audio visualization
+        function startStemCanvasVisualizer() {
+            const canvas = document.getElementById('stem-audio-canvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            let animationFrame;
+            
+            function renderFrame() {
+                if (!document.getElementById('mod-audio')?.classList.contains('active')) {
+                    if (animationFrame) cancelAnimationFrame(animationFrame);
+                    return;
+                }
+                
+                const width = canvas.clientWidth || 400;
+                const height = canvas.clientHeight || 120;
+                canvas.width = width;
+                canvas.height = height;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                // Draw grid
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.lineWidth = 1;
+                for (let y = 0; y < height; y += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                }
+                
+                // Draw stem bars (simulated)
+                const stems = [
+                    { name: 'Vocals', color: '#ef4444', val: Math.random() * 0.8 },
+                    { name: 'Drums', color: '#3b82f6', val: Math.random() * 0.6 },
+                    { name: 'Bass', color: '#10b981', val: Math.random() * 0.7 },
+                    { name: 'Other', color: '#a855f7', val: Math.random() * 0.5 }
+                ];
+                
+                const stemBarWidth = 16;
+                const startX = 16;
+                
+                stems.forEach((s, idx) => {
+                    const x = startX + idx * (stemBarWidth + 12);
+                    const barH = s.val * (height - 30);
+                    const y = height - 15 - barH;
+                    
+                    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                    ctx.fillRect(x, 10, stemBarWidth, height - 25);
+                    
+                    ctx.fillStyle = s.color;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 8;
+                    ctx.fillRect(x, y, stemBarWidth, barH);
+                    ctx.shadowBlur = 0;
+                });
+                
+                // Draw spectrum visualization
+                const spectrumStartX = 150;
+                const spectrumWidth = width - spectrumStartX - 16;
+                const binCount = 32;
+                const binW = Math.max(3, (spectrumWidth / binCount) - 2);
+                
+                for (let i = 0; i < binCount; i++) {
+                    const val = Math.random();
+                    const h = Math.max(2, val * (height - 30));
+                    const bx = spectrumStartX + i * (binW + 2);
+                    const by = height - 15 - h;
+                    
+                    const gradient = ctx.createLinearGradient(0, height, 0, 0);
+                    gradient.addColorStop(0, '#3b82f6');
+                    gradient.addColorStop(0.7, '#a855f7');
+                    gradient.addColorStop(1, '#ef4444');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(bx, by, binW, h);
+                }
+                
+                animationFrame = requestAnimationFrame(renderFrame);
+            }
+            
+            renderFrame();
+        }
+
+        // Swarm module functions
+        function handleSpawnSubmit() {
+            const nameInput = document.getElementById('swarm-agent-name');
+            const taskInput = document.getElementById('swarm-agent-task');
+            const cmdInput = document.getElementById('swarm-agent-command');
+            
+            if (!nameInput || !taskInput) return;
+            
+            const name = nameInput.value.trim() || 'Worker Subagent';
+            const task = taskInput.value.trim() || 'Background analysis';
+            const cmd = cmdInput.value.trim();
+            
+            // Simulate agent spawning
+            const agentId = 'agent_' + Date.now();
+            const newAgent = {
+                id: agentId,
+                name: name,
+                task: task,
+                status: 'running',
+                pid: Math.floor(Math.random() * 9999) + 1000,
+                metrics: {
+                    cpu_percent: Math.floor(Math.random() * 30),
+                    memory_mb: Math.floor(Math.random() * 1000)
+                }
+            };
+            
+            // Update UI with new agent
+            updateSwarmDisplay([newAgent]);
+            showToast(`Agent '${name}' spawned successfully`, 'success');
+            
+            // Clear inputs
+            nameInput.value = '';
+            taskInput.value = '';
+            if (cmdInput) cmdInput.value = '';
+        }
+
+        function updateSwarmDisplay(agents) {
+            const activeCountEl = document.getElementById('swarm-active-count');
+            const totalCountEl = document.getElementById('swarm-total-count');
+            
+            if (activeCountEl) activeCountEl.textContent = agents.length;
+            if (totalCountEl) totalCountEl.textContent = agents.length;
+            
+            // Update agent list
+            const listEl = document.getElementById('swarm-agents-list');
+            if (listEl && agents) {
+                listEl.innerHTML = agents.map(a => {
+                    const statusColor = a.status === 'running' ? '#4ade80' : (a.status === 'completed' ? '#a855f7' : '#ef4444');
+                    const statusBg = a.status === 'running' ? 'rgba(74, 222, 128, 0.15)' : (a.status === 'completed' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(239, 68, 68, 0.15)');
+                    const metricsStr = a.status === 'running' && a.metrics ? ` | CPU: ${a.metrics.cpu_percent}% RAM: ${a.metrics.memory_mb}MB` : '';
+
+                    return `
+                        <div class="process-item" style="cursor: pointer;" onclick="selectSwarmAgentLog('${a.id}')">
+                            <div style="display: flex; flex-direction: column; gap: 3px; flex: 1; overflow: hidden;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 11px; font-weight: 700; color: #fff;">${escapeHtml(a.name)}</span>
+                                    <span class="badge ${a.status}" style="font-size: 8px; font-weight: 800; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusColor}44;">${a.status}</span>
+                                </div>
+                                <span style="font-size: 9px; color: rgba(255,255,255,0.4); font-family: monospace;">${escapeHtml(a.task)} (PID: ${a.pid || 'N/A'}${metricsStr})</span>
+                            </div>
+                            ${a.status === 'running' ? `
+                                <button onclick="event.stopPropagation(); terminateSwarmAgent('${a.id}')" class="btn-action danger" style="padding: 4px 10px; font-size: 9px;">Terminate</button>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function selectSwarmAgentLog(agentId) {
+            showToast(`Selected agent: ${agentId}`, 'info');
+        }
+
+        function terminateSwarmAgent(agentId) {
+            showToast(`Terminating agent: ${agentId}`, 'info');
+        }
+
+        // Utility function for haptic feedback
+        function haptic(type) {
+            // Simulate haptic feedback if available
+            if (navigator.vibrate) {
+                const pattern = type === 'light' ? 10 : type === 'medium' ? 30 : 50;
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize icons
+            lucide.createIcons();
+            
+            // Initialize WebSocket status
+            initWsStatus();
+            
+            // Initial stats fetch
+            fetchStats();
+            
+            // Set up periodic stats updates
+            setInterval(fetchStats, 5000);
+            
+            // Set up periodic log updates
+            setInterval(fetchLogs, 3000);
+            
+            // Initialize dock items with keyboard support
+            document.querySelectorAll('.dock-item').forEach(item => {
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        item.click();
+                    }
+                });
+            });
+            
+            // Show welcome toast
+            showToast('Hermes Dashboard Loaded Successfully', 'success');
+        });
+
+        // Handle Telegram WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+        }
+    </script>
+</body>
+</html>

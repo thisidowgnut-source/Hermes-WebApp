@@ -1,0 +1,40 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "trigger-hermes",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID",
+        "text": "=Konten Baru Sedia!\n\n{{ $json.content }}\n\nSila pilih jenama:",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            [
+              {"text": "✅ Lulus DOWGNUT", "url": "={{ $resumeUrl }}?brand=dowgnut"},
+              {"text": "✅ Lulus PuspaCare", "url": "={{ $resumeUrl }}?brand=puspacare"}
+            ],
+            [
+              {"text": "❌ Batal", "url": "={{ $resumeUrl }}?action=reject"}
+            ]
+          ]
+        }
+      },
+      "name": "Telegram Approval",
+      "type": "n8n-nodes-base.telegram"
+    },
+    {
+      "parameters": {
+        "resume": "webhook"
+      },
+      "name": "Wait for Approval",
+      "type": "n8n-nodes-base.wait"
+    }
+  ]
+}

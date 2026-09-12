@@ -1,0 +1,132 @@
+{
+  "name": "Hermes OS",
+  "short_name": "Hermes OS",
+  "description": "Remote PC Control & AI Agent Command Center via Telegram Mini App",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/static/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity", "developer-tools"],
+  "screenshots": [
+    {
+      "src": "/static/screenshots/dashboard.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Hermes OS Dashboard - System Telemetry"
+    },
+    {
+      "src": "/static/screenshots/terminal.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Remote Terminal - Full PowerShell Access"
+    },
+    {
+      "src": "/static/screenshots/browser.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Hermes Vision - Remote Browser Control"
+    },
+    {
+      "src": "/static/screenshots/swarm.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Agent Swarm - Multi-Agent Monitoring"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Terminal",
+      "short_name": "Terminal",
+      "description": "Open remote PowerShell terminal",
+      "url": "/#terminal",
+      "icons": [{ "src": "/static/icons/terminal-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Browser",
+      "short_name": "Browser",
+      "description": "Open remote browser (Hermes Vision)",
+      "url": "/#browser",
+      "icons": [{ "src": "/static/icons/browser-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Swarm",
+      "short_name": "Swarm",
+      "description": "View agent swarm dashboard",
+      "url": "/#swarm",
+      "icons": [{ "src": "/static/icons/swarm-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Stats",
+      "short_name": "Stats",
+      "description": "System telemetry & metrics",
+      "url": "/#stats",
+      "icons": [{ "src": "/static/icons/stats-96.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
+}

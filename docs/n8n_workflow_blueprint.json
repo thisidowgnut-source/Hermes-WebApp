@@ -1,0 +1,45 @@
+{
+  "name": "Telegram HITL Approval",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram-hitl",
+        "responseMode": "lastNode"
+      },
+      "name": "Webhook (From Hermes)",
+      "type": "n8n-nodes-base.webhook",
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json.chat_id}}",
+        "text": "={{$json.draft_content}}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {"text": "✅ Lulus", "callbackData": "approve"},
+                  {"text": "❌ Batal", "callbackData": "reject"}
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "name": "Telegram Send",
+      "type": "n8n-nodes-base.telegram",
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "resume": "webhook"
+      },
+      "name": "Wait for Approval",
+      "type": "n8n-nodes-base.wait",
+      "position": [600, 300]
+    }
+  ]
+}

@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""
+Hermes-WebApp Tunnel Keeper — self-healing Cloudflare quick-tunnel + Telegram menu sync.
+
+Problem solved: trycloudflare.com quick tunnels get a NEW random URL on every
+restart, so the Telegram Mini App menu button keeps pointing at a dead URL
+("tak consistent"). This keeper owns the full lifecycle:
+
+  1. Discovers the live Hermes-WebApp port (health scan, no hardcoding).
+  2. Ensures EXACTLY ONE cloudflared tunnel points at that port.
+  3. Parses the public URL from the tunnel's own log.
+  4. Verifies the URL end-to-end (/api/stats over HTTPS).
+  5. Sets the Telegram menu button (default + per-chat override that bypasses
+     Telegram's ~24h cache) and persists WEBAPP_URL into .env.
+  6. Loops forever: probes every PROBE_INTERVAL s; two consecutive failures
+     restart the tunnel and re-sync the button.
+
+Idempotent: a lockfile keeps a single instance alive. Safe to invoke from a
+scheduled task every few minutes — a running instance makes it a no-op.
+
+Logs: logs/tunnel_keeper.log + logs/cloudflared-live.log
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+import urllib.request
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+KEEPER_LOG = LOG_DIR / "tunnel_keeper.log"
+TUNNEL_LOG = LOG_DIR / "cloudflared-live.log"
+LOCK_FILE = LOG_DIR / "tunnel_keeper.pid"
+
+PORT_SCAN_ORDER = [9220, 9230, 9225, 9255, 9290, 8080]
+PROBE_INTERVAL = 300          # seconds between health probes
+MAX_CONSECUTIVE_FAILS = 2     # probe failures before tunnel restart
+URL_PATTERN = re.compile(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com")
+MENU_TEXT = "OPEN Hermes OS"
+OWNER_CHAT_ID = os.getenv("TELEGRAM_OWNER_CHAT_ID", "6798585537")
+CLOUDFLARED = r"C:\Program Files (x86)\cloudflared\cloudflared.exe"
+
+
+def log(msg: str) -> None:
+    line = f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}"
+    print(line, flush=True)
+    try:
+        with open(KEEPER_LOG, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except OSError:
+        pass
+
+
+def read_bot_token() -> str:
+    env_file = BASE_DIR / ".env"
+    if not env_file.exists():
+        return ""
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        if line.startswith("TELEGRAM_BOT_TOKEN="):
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return os.getenv("TELEGRAM_BOT_TOKEN", "")
+
+
+def http_get(url: str, timeout: int = 10) -> tuple[int, str]:
+    req = urllib.request.Request(url, headers={"User-Agent": "TunnelKeeper/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, r.read(2000).decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, ""
+    except Exception:
+        return 0, ""
+
+
+def http_post_json(url: str, payload: dict, timeout: int = 15) -> bool:
+    req = urllib.request.Request(
+        url, data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode()).get("ok", False)
+    except Exception as e:
+        log(f"POST {url.split('/bot')[0]}/bot***/{url.rsplit('/', 1)[-1]} failed: {e}")
+        return False
+
+
+def discover_webapp_port() -> int:
+    """Find the live Hermes-WebApp port via /api/stats health scan."""
+    for port in PORT_SCAN_ORDER:
+        status, _ = http_get(f"http://127.0.0.1:{port}/api/stats", timeout=3)
+        if status == 200:
+            return port
+    return 0
+
+
+def kill_all_tunnels() -> None:
+    subprocess.run(["taskkill", "/IM", "cloudflared.exe", "/F"],
+                   capture_output=True)
+    time.sleep(2)
+
+
+def start_tunnel(port: int) -> subprocess.Popen:
+    TUNNEL_LOG.write_text("", encoding="utf-8")  # fresh log for clean URL parse
+    fh = open(TUNNEL_LOG, "a", encoding="utf-8")
+    proc = subprocess.Popen(
+        [CLOUDFLARED, "tunnel", "--url", f"http://127.0.0.1:{port}"],
+        stdout=fh, stderr=subprocess.STDOUT,
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+    )
+    log(f"Tunnel started PID {proc.pid} -> http://127.0.0.1:{port}")
+    return proc
+
+
+def wait_for_url(timeout: int = 45) -> str:
+    """Poll the tunnel log for the public trycloudflare URL."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            text = TUNNEL_LOG.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            text = ""
+        urls = URL_PATTERN.findall(text)
+        if urls:
+            return urls[-1]
+        time.sleep(2)
+    return ""
+
+
+def wait_for_registration(timeout: int = 40) -> bool:
+    """Wait until cloudflared logs 'Registered tunnel connection' — the edge
+    has accepted the tunnel. Probing BEFORE this guarantees HTTP 000/530."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            text = TUNNEL_LOG.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            text = ""
+        if "Registered tunnel connection" in text:
+            return True
+        time.sleep(2)
+    return False
+
+
+def persist_webapp_url(url: str) -> None:
+    env_file = BASE_DIR / ".env"
+    if not env_file.exists():
+        return
+    lines = env_file.read_text(encoding="utf-8").splitlines()
+    out, replaced = [], False
+    for line in lines:
+        if line.startswith("WEBAPP_URL="):
+            out.append(f'WEBAPP_URL="{url}"')
+            replaced = True
+        else:
+            out.append(line)
+    if not replaced:
+        out.append(f'WEBAPP_URL="{url}"')
+    env_file.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
+def sync_menu_button(token: str, url: str) -> bool:
+    api = f"https://api.telegram.org/bot{token}/setChatMenuButton"
+    # Per-chat override first: applies immediately to the owner's existing chat
+    # (default-only updates are cached up to ~24h by Telegram clients).
+    ok_chat = http_post_json(api, {
+        "chat_id": OWNER_CHAT_ID,
+        "menu_button": {"type": "web_app", "text": MENU_TEXT,
+                        "web_app": {"url": url}},
+    })
+    ok_default = http_post_json(api, {
+        "menu_button": {"type": "web_app", "text": MENU_TEXT,
+                        "web_app": {"url": url}},
+    })
+    log(f"Menu button sync: per-chat={ok_chat} default={ok_default} -> {url}")
+    return ok_chat and ok_default
+
+
+def acquire_lock() -> bool:
+    if LOCK_FILE.exists():
+        try:
+            old_pid = int(LOCK_FILE.read_text().strip())
+            alive = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {old_pid}", "/NH"],
+                capture_output=True, text=True).stdout
+            if str(old_pid) in alive and "python" in alive.lower():
+                log(f"Instance already running (PID {old_pid}) — exiting.")
+                return False
+        except (ValueError, OSError):
+            pass
+    LOCK_FILE.write_text(str(os.getpid()))
+    return True
+
+
+def release_lock() -> None:
+    try:
+        LOCK_FILE.unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def main() -> None:
+    if not acquire_lock():
+        return
+    try:
+        token = read_bot_token()
+        tunnel: subprocess.Popen | None = None
+        url = ""
+        fails = 0
+
+        while True:
+            # (Re)establish tunnel when missing or dead
+            need_tunnel = tunnel is None or tunnel.poll() is not None
+            if need_tunnel:
+                port = discover_webapp_port()
+                if not port:
+                    log("WebApp server not healthy — waiting 60s for watchdog to heal it.")
+                    time.sleep(60)
+                    continue
+                kill_all_tunnels()
+                tunnel = start_tunnel(port)
+                url = wait_for_url()
+                if not url:
+                    log("No tunnel URL after 45s — retrying cycle.")
+                    tunnel = None
+                    time.sleep(15)
+                    continue
+                if not wait_for_registration():
+                    log("No 'Registered tunnel connection' after 40s — retrying cycle.")
+                    tunnel = None
+                    time.sleep(15)
+                    continue
+                # Fresh trycloudflare URLs need edge propagation time. Probe
+                # in a 90s window instead of failing the tunnel immediately.
+                status = 0
+                for _ in range(15):
+                    status, _ = http_get(f"{url}/api/stats")
+                    if status == 200:
+                        break
+                    time.sleep(6)
+                if status != 200:
+                    log(f"Tunnel URL up but backend unhealthy (HTTP {status}) — retrying.")
+                    tunnel = None
+                    time.sleep(15)
+                    continue
+                fails = 0
+                persist_webapp_url(url)
+                if token:
+                    sync_menu_button(token, url)
+                log(f"Tunnel healthy: {url} -> port {port}")
+
+            # Periodic probe
+            time.sleep(PROBE_INTERVAL)
+            status, _ = http_get(f"{url}/api/stats")
+            if status == 200:
+                fails = 0
+            else:
+                fails += 1
+                log(f"Probe FAIL {fails}/{MAX_CONSECUTIVE_FAILS} (HTTP {status})")
+                if fails >= MAX_CONSECUTIVE_FAILS:
+                    log("Tunnel declared dead — restarting and re-syncing menu button.")
+                    tunnel = None
+                    fails = 0
+    except KeyboardInterrupt:
+        pass
+    finally:
+        release_lock()
+
+
+if __name__ == "__main__":
+    main()

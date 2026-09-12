@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger"
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:9221/webhook/n8n/generate-video",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.prompt }}"
+            },
+            {
+              "name": "callback_url",
+              "value": "={{ $resumeUrl }}"
+            }
+          ]
+        }
+      },
+      "name": "Trigger Python Generation",
+      "type": "n8n-nodes-base.httpRequest"
+    },
+    {
+      "parameters": {
+        "resume": "webhook"
+      },
+      "name": "Wait for Media",
+      "type": "n8n-nodes-base.wait"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_CHAT_ID",
+        "text": "=Video Sedia!\n\nUrl: {{ $json.media_url }}",
+        "replyMarkup": "none"
+      },
+      "name": "Telegram Notify",
+      "type": "n8n-nodes-base.telegram"
+    }
+  ]
+}

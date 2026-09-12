@@ -1,0 +1,42 @@
+# Systemd Service for Hermes WebApp (Linux/WSL2)
+# ================================================
+# Install: sudo cp deploy/hermes-webapp.service /etc/systemd/system/
+# Enable:  sudo systemctl enable hermes-webapp
+# Start:   sudo systemctl start hermes-webapp
+# Logs:    sudo journalctl -u hermes-webapp -f
+
+[Unit]
+Description=Hermes OS WebApp - Telegram Mini App Backend
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=megat
+WorkingDirectory=/home/megat/Hermes-WebApp
+Environment=PATH=/home/megat/Hermes-WebApp/.venv/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-/home/megat/Hermes-WebApp/.env
+ExecStart=/home/megat/Hermes-WebApp/.venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 9220
+Restart=always
+RestartSec=5
+RestartPreventExitStatus=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hermes-webapp
+
+# Security Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/megat/Hermes-WebApp/.queue /home/megat/Hermes-WebApp/logs
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+# Resource Limits
+LimitNOFILE=65536
+MemoryMax=2G
+CPUQuota=200%
+
+[Install]
+WantedBy=multi-user.target

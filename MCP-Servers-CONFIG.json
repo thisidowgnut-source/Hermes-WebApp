@@ -1,0 +1,84 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "/workspace"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "git": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-git"],
+      "cwd": "/workspace"
+    },
+    "browser": {
+      "command": "node",
+      "args": ["/usr/local/bin/browser-server.js"],
+      "env": {
+        "DEBUG": "true"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "process.env.GITHUB_TOKEN || ''"
+      }
+    },
+    "postgresql": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-postgres"],
+      "env": {
+        "PG_CONN_STRING": "process.env.PG_CONNECTION_STRING || ''"
+      }
+    },
+    "docker": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-docker"],
+      "env": {
+        "DOCKER_HOST": "tcp://localhost:2375"
+      }
+    },
+    "terminal": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-terminal"],
+      "env": {
+        "SHELL": "/bin/bash",
+        "MAX_SESSIONS": "5"
+      }
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["@firecrawl/mcp-server"],
+      "env": {
+        "FIRECRAWL_API_KEY": "process.env.FIRECRAWL_API_KEY || ''"
+      }
+    },
+    "memory": {
+      "command": "python",
+      "args": ["-m", "mcp_server_memory"],
+      "cwd": "/workspace/.mcp-memory"
+    },
+    "calculator": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-calculator"]
+    },
+    "aws": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-aws"],
+      "env": {
+        "AWS_ACCESS_KEY_ID": "process.env.AWS_ACCESS_KEY || ''",
+        "AWS_SECRET_ACCESS_KEY": "process.env.AWS_SECRET || ''",
+        "AWS_REGION": "us-east-1"
+      }
+    },
+    "notion": {
+      "command": "npx",
+      "args": ["@notionhq/mcp-server"],
+      "env": {
+        "NOTION_API_KEY": "process.env.NOTION_KEY || ''"
+      }
+    }
+  }
+}
