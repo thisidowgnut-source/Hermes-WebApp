@@ -1744,6 +1744,9 @@
         <button id="btn-dohnut-labs" onclick="switchDohnutTab('labs')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
             <i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> AI Labs (10)
         </button>
+        <button id="btn-dohnut-catalog" onclick="switchDohnutTab('catalog')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="store" style="width: 12px; height: 12px;"></i> Katalog Live
+        </button>
     </div>
 
     <!-- Module Content Body -->
@@ -1930,6 +1933,30 @@
                         <div style="font-size: 8px; color: rgba(255,255,255,0.4);">Visual Node Workflows</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: LIVE CATALOG (Vercel production storefront) -->
+        <div id="dohnut-tab-catalog" style="display: none; flex-direction: column; gap: 14px;">
+            <div class="glass" style="padding: 16px;">
+                <div style="font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="store" style="width: 14px; height: 14px; color: #ef9fbd;"></i> Katalog Live — Produksi</span>
+                    <button onclick="fetchDohnutCatalog()" class="btn-action" style="min-height: 32px; font-size: 10px; padding: 6px 12px;"><i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Sync</button>
+                </div>
+                <div style="font-size: 9px; color: rgba(255,255,255,0.5);">Data sebenar dari dowgnut-custom.vercel.app. Tekan Sync untuk muat semula.</div>
+            </div>
+            <div class="glass" style="padding: 16px;">
+                <div style="font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="alert-triangle" style="width: 13px; height: 13px; color: #facc15;"></i> Stok Perlu Perhatian (<35 unit)
+                </div>
+                <div id="dohnut-low-stock-list" aria-live="polite" style="display: flex; flex-direction: column; gap: 6px;"></div>
+            </div>
+            <div class="glass" style="padding: 16px;">
+                <div style="font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                    <span>Semua Item (<span id="dohnut-catalog-count">—</span>)</span>
+                    <span id="dohnut-catalog-types" style="font-size: 9px; color: rgba(255,255,255,0.4);"></span>
+                </div>
+                <div id="dohnut-catalog-list" aria-live="polite" style="display: flex; flex-direction: column; gap: 6px;"></div>
             </div>
         </div>
 
@@ -5202,7 +5229,7 @@
     function switchDohnutTab(tab) {
         haptic('light');
         activeDohnutTab = tab;
-        const tabs = ['store', 'social', 'swarm', 'labs'];
+        const tabs = ['store', 'social', 'swarm', 'labs', 'catalog'];
         tabs.forEach(t => {
             const el = document.getElementById('dohnut-tab-' + t);
             const btn = document.getElementById('btn-dohnut-' + t);
@@ -5222,6 +5249,7 @@
             }
         });
         if (tab === 'swarm') fetchDohnutSwarm();
+        if (tab === 'catalog') fetchDohnutCatalog();
         safeCreateIcons();
     }
 
@@ -5237,6 +5265,50 @@
             }
         } catch(e) {}
         fetchDohnutSwarm();
+        safeCreateIcons();
+    }
+
+    async function fetchDohnutCatalog() {
+        const list = document.getElementById('dohnut-catalog-list');
+        if (!list) return;
+        list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);font-size:11px;padding:16px;">Memuat katalog live…</div>';
+        try {
+            const res = await fetch('/api/dohnut/catalog');
+            const data = await res.json();
+            if (!res.ok || !data.ok) throw new Error(data.detail || 'Gagal muat katalog');
+            const countEl = document.getElementById('dohnut-catalog-count');
+            if (countEl) countEl.textContent = data.count;
+            const typesEl = document.getElementById('dohnut-catalog-types');
+            if (typesEl) typesEl.textContent = (data.types || []).join(' · ');
+            const items = data.catalog || [];
+            const low = items.filter(d => (d.stock || 0) <= 35).sort((a, b) => (a.stock || 0) - (b.stock || 0));
+            const lowList = document.getElementById('dohnut-low-stock-list');
+            if (lowList) {
+                lowList.innerHTML = low.length ? low.map(d => {
+                    const stock = d.stock || 0;
+                    const c = stock <= 20 ? '#f87171' : '#facc15';
+                    return `<div style="display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 10px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.06);border-radius:6px;">
+                        <div style="flex:1;min-width:0;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(d.name || '')}</div>
+                        <div style="font-variant-numeric:tabular-nums;font-size:10px;font-weight:800;color:${c};flex-shrink:0;">${stock} unit</div>
+                    </div>`;
+                }).join('') : '<div style="font-size:10px;color:rgba(255,255,255,0.4);padding:4px 2px;">Semua stok sihat (tiada item bawah 35 unit).</div>';
+            }
+            list.innerHTML = items.map(d => {
+                const stock = d.stock || 0;
+                const stockColor = stock <= 20 ? '#f87171' : (stock <= 35 ? '#facc15' : '#4ade80');
+                return `<div style="display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 10px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.06);border-radius:6px;">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(d.name || '')}</div>
+                        <div style="font-size:9px;color:rgba(255,255,255,0.4);">${escapeHtml(d.type || '')}${d.rating ? ' · ★ ' + d.rating : ''}</div>
+                    </div>
+                    <div style="font-variant-numeric:tabular-nums;font-size:11px;font-weight:800;color:#4ade80;flex-shrink:0;">RM ${Number(d.price || 0).toFixed(2)}</div>
+                    <div style="font-variant-numeric:tabular-nums;font-size:10px;font-weight:800;color:${stockColor};flex-shrink:0;min-width:56px;text-align:right;">${stock} unit</div>
+                </div>`;
+            }).join('');
+            showToast(`Katalog live: ${items.length} item dimuat`);
+        } catch(e) {
+            list.innerHTML = `<div style="text-align:center;color:#ff5555;font-size:11px;padding:16px;">${escapeHtml(e.message || 'Gagal muat')} — tekan Sync untuk cuba semula.</div>`;
+        }
         safeCreateIcons();
     }
 

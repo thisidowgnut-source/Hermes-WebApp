@@ -108,6 +108,23 @@ def get_dohnut_stats():
         pass
     return stats
 
+@router.get("/catalog")
+def get_dohnut_catalog():
+    """Live catalog proxy: the real menu from the deployed storefront (Vercel)."""
+    try:
+        catalog = dohnut_link.get_live_catalog()
+    except Exception:
+        catalog = None
+    if not catalog:
+        raise HTTPException(status_code=503, detail="Live storefront unreachable (Vercel). Retry Sync in a moment.")
+    return {
+        "ok": True,
+        "source": "vercel:dowgnut-custom",
+        "count": len(catalog),
+        "types": sorted({d.get("type", "unknown") for d in catalog}),
+        "catalog": catalog,
+    }
+
 @router.get("/social/accounts")
 def get_social_accounts():
     """Returns verified official social media accounts for Doh-Nut."""
