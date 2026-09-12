@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — System Architecture Specification"
 document_id: "HERMES-WEBAPP-ARCH-001"
-version: "3.5.0"
-last_updated: "2026-09-12 15:22:00 MYT"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "MISSION-CRITICAL // ARCHITECTURE CORE"
 lifecycle_status: "PRODUCTION / STABLE"
@@ -18,6 +18,7 @@ lifecycle_status: "PRODUCTION / STABLE"
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Root Cause / Rationale | Scope & Architectural Changes | Empirical Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0 (Direktori PRO), Kemasan Butang Emil Kowalski (Zero-Jitter), dan Arkitektur Mobile-First Sifar-Bertindih. | `static/index.html`, `var/`, `tools/mcp/`, `docs/ARCHITECTURE.md` | 0 jitter butang pada hover, 0 bertindih pada viewport 390x844 & 360x740, FHS 3.0 layout 13 fail root. |
 | **`3.5.0`** | 2026-09-12 15:22:00<br>`2026-09-12T07:22:00Z` | Antigravity Conductor | Penyatuan All-in-1 Mission Control Doh-Nut ke dalam Hermes-WebApp tanpa mengganggu Telegram Menu Button. | `backend/routers/dohnut.py`, `backend/main.py`, `static/index.html`, `docs/ARCHITECTURE.md` | 5/5 API Endpoints 200 OK, Chrome DevTools MCP Desktop & Mobile (390px) verified. |
 | **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Reka bentuk semula Bento-Box Dashboard, pembetulan CSS overlay z-index, integrasi Termux Hacker's Keyboard. | `static/index.html`, `backend/websockets/terminal.py` | 84/84 Pytest suite passed, 14 modul UI lulus ujian headless DOM. |
 | **`1.0.0`** | 2026-07-20 12:00:00<br>`2026-07-20T04:00:00Z` | Megat / Bo | Spesifikasi asal seni bina Hermes OS WebApp. | FastAPI + WebSockets + Cloudflare Tunnel | PWA & Telegram WebApp MVP. |
@@ -129,6 +130,38 @@ flowchart TD
   Normalized Mobile (X, Y) ──► Viewport Ratio Multiplier ──► Playwright mouse.click(px_X, px_Y)
   ```
 
+### 2.5 FHS 3.0 Runtime Separation & File Hierarchy
+Sistem mengamalkan piawaian pengasingan Filesystem Hierarchy Standard (FHS 3.0) bagi memastikan punca repositori kekal bersih dan operasi runtime terasing:
+
+```mermaid
+graph TD
+    Root["C:\Users\megat\Hermes-WebApp (Root: 13 Files)"]
+    
+    subgraph RuntimeLayer ["FHS 3.0 Runtime Layer (var/)"]
+        V_LOG["var/log/ — Telemetry, Audit & Access Logs"]
+        V_RUN["var/run/ — PID Files & Process Locks"]
+        V_LIB["var/lib/ — Dynamic Application State & Caches"]
+        V_SPL["var/spool/ — Async Task & Message Queues"]
+    end
+
+    subgraph ToolsLayer ["Tools & Extensions (tools/)"]
+        T_MCP["tools/mcp/ — MCP Package Guides & Installers"]
+    end
+
+    subgraph DocsLayer ["Divio 4-Quadrant Documentation (docs/)"]
+        D_TUT["Tutorials: README.md (Root)"]
+        D_HOW["How-To: DEPLOYMENT.md, TROUBLESHOOTING.md"]
+        D_REF["Reference: ARCHITECTURE.md, API.md, DESIGNS.md, SECURITY.md"]
+        D_EXP["Explanation: PRD.md, AGENTS.md, SKILLS.md"]
+        D_ARC["docs/archive/ — Historical Reviews & Planning"]
+        D_N8N["docs/n8n/ — JSON Workflow Blueprints"]
+    end
+
+    Root --> RuntimeLayer
+    Root --> ToolsLayer
+    Root --> DocsLayer
+```
+
 ---
 
 ## 3. Network & Edge Tunneling Strategy
@@ -173,6 +206,48 @@ sequenceDiagram
   - Setiap modul menggunakan kelas `.module-overlay`.
   - Apabila diaktifkan (`.module-overlay.active`), modal dinaikkan menggunakan transisi `transform: translateY(0)` dengan fungsi pemasaan `cubic-bezier(0.16, 1, 0.3, 1)`.
   - Menyokong penderiaan sejarah pelayar (`history.pushState` dan `window.onpopstate`) bagi memastikan gerak isyarat leret kembali (*swipe-back*) atau butang kembali peranti bimbit menutup modal tanpa menutup Telegram Mini App.
+
+### 4.2 Zero-Jitter Button Interaction Model (Emil Kowalski Craft Standard)
+Punca utama kegoyangan/getaran butang (*button jitter*) yang dikesan sebelum ini ialah pertembungan antara enjin fizikal penjejakan tetikus `MagicBento` dan transformasi butang CSS:
+1. **Pemisahan Kelas**: Menanggalkan kelas `.glass` daripada 52 elemen butang. Kelas `.glass` hanya dibenarkan pada bekas kontena statik.
+2. **Kekangan Selector**: Menapis pemilih kad dalam JavaScript:
+   ```javascript
+   const bentoCards = document.querySelectorAll('.card:not(button):not(.btn)');
+   ```
+   Ini menghalang pengiraan koordinat relatif tetikus `(magnetX, magnetY)` daripada mengenakan transformasi ayunan pada elemen yang boleh diklik.
+3. **Maklum Balas Taktil Cepat**:
+   ```css
+   button:active, .btn:active, .tab-btn:active {
+       transform: scale(0.97) !important;
+       transition: transform 0.1s ease !important;
+   }
+   ```
+4. **Perlindungan Hover Skrin Sentuh**:
+   Mengurung semua transformasi `:hover` dalam query media `@media (hover: hover) and (pointer: fine)` bagi memastikan peranti bimbit tidak mengalami masalah *sticky hover*.
+
+### 4.3 Mobile-First Zero-Overlap Architecture & Safe-Area Clearance Engine
+Bagi memastikan sifar pertindihan (*zero overlap*) antara komponen pada viewport peranti bimbit (390x844px dan 360x740px):
+1. **Safe-Area Clearance Equation**:
+   ```css
+   main {
+       padding-bottom: calc(140px + env(safe-area-inset-bottom, 28px)) !important;
+   }
+   ```
+   Persamaan ini mengira ketinggian bilah dok tetap (64px) + margin terapung (24px) + kelegaan visual selamat (24px) + safe-area peranti Telegram (28px) = jumlah 140px+ clearance.
+2. **Flexbox Collapse Guardrails**:
+   Kontena dinamik (seperti `#agent-stream-container`) dipasang pelindung saiz ketat:
+   ```css
+   #agent-stream-container {
+       min-height: 180px !important;
+       flex-shrink: 0 !important;
+       max-height: 240px !important;
+   }
+   ```
+   Menghalang pemampatan flexbox daripada mengecilkan modul penstriman log kepada 0px apabila papan kekunci maya dinaikkan.
+3. **Responsive 3-Column Touch Matrix**:
+   Pada lebar `< 640px`, grid butang tindakan bertukar daripada 6 lajur kepada 3 lajur sekata (`repeat(3, 1fr)`) dengan tinggi minimum 52px bagi memastikan sasaran sentuhan jari (*touch targets*) menepati piawaian ergonomik Apple/Android (min 48px).
+4. **List Scroll Extents**:
+   Semua ruang senarai dalaman mempunyai `padding-bottom: 36px` untuk membolehkan item terakhir dilihat dan disentuh sepenuhnya tanpa terlindung di bawah sempadan bekas.
 
 ---
 

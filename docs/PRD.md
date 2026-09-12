@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — Product Requirements Document (PRD)"
 document_id: "HERMES-WEBAPP-PRD-001"
-version: "3.5.0"
-last_updated: "2026-09-12 15:22:00 MYT"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "MISSION-CRITICAL // SOVEREIGN ENGINE"
 lifecycle_status: "PRODUCTION / STABLE"
@@ -18,6 +18,7 @@ lifecycle_status: "PRODUCTION / STABLE"
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Root Cause / User Intent | Scope & Components Touched | Empirical Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0, Penghapusan Jitter Butang (Emil Kowalski Craft), dan Arkitektur Mobile-First Sifar-Bertindih. | `static/index.html`, `var/`, `tools/mcp/`, `docs/PRD.md` | 0 jitter butang pada hover, 0 bertindih pada viewport 390x844 & 360x740, 13 fail root. |
 | **`3.5.0`** | 2026-09-12 15:22:00<br>`2026-09-12T07:22:00Z` | Antigravity Conductor | Penyatuan All-in-1 Mission Control Doh-Nut ke dalam Hermes-WebApp tanpa mengganggu Telegram Menu Button. | `backend/routers/dohnut.py`, `static/index.html`, `docs/PRD.md` | 5/5 API Endpoints 200 OK, Chrome DevTools MCP Desktop & Mobile (390px) verified. |
 | **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Reka bentuk semula Bento-Box Dashboard, pembetulan CSS overlay z-index, integrasi Termux Hacker's Keyboard. | `static/index.html`, `backend/websockets/terminal.py` | 84/84 Pytest suite passed, 14 modul UI lulus ujian headless DOM. |
 | **`1.0.0`** | 2026-07-20 12:00:00<br>`2026-07-20T04:00:00Z` | Megat / Bo | Spesifikasi asal Hermes OS Telegram WebApp. | Core FastAPI + WebSockets + Cloudflare Tunnel | PWA & Telegram WebApp MVP. |
@@ -112,6 +113,19 @@ Aplikasi ini menamatkan batasan bot Telegram konvensional (had mesej teks 4096 a
 - **REQ-SEC-02**: Pengesan ancaman heuristik dan pengurusan sekatan firewall Windows (`netsh`).
 - **REQ-SYS-01**: Makro pantas: `clean_temp`, `lock_pc`, `cleanup_zombies`, `sync_webhook`.
 
+### 4.5 Emil Kowalski Zero-Jitter Button Engine (`#btn-craft`)
+- **REQ-BTN-01 (Zero Wobble/Jitter)**: Sifar pergerakan atau getaran kursor apabila tetikus berada di atas mana-mana butang atau kawalan interaktif.
+- **REQ-BTN-02 (Pengasingan `.glass`)**: Kelas `.glass` dilarang sama sekali pada elemen `<button>`, `.btn`, `.tab-btn`, atau pautan bagi mengelakkan konflik warisan gaya.
+- **REQ-BTN-03 (Kekangan `MagicBento`)**: Enjin kad bento dihadkan kepada `.card:not(button):not(.btn)` — menghapuskan pengiraan `translate(magnetX, magnetY)` pada butang.
+- **REQ-BTN-04 (Maklum Balas Taktil)**: Setiap butang wajib menyokong `:active { transform: scale(0.97) }` dengan pemasaan `100ms ease`.
+- **REQ-BTN-05 (Pengasingan Hover Sentuh)**: Semua kesan `:hover` dikurung dalam `@media (hover: hover) and (pointer: fine)` bagi menghapuskan masalah *sticky hover* pada telefon pintar.
+
+### 4.6 Mobile-First Zero-Overlap Architecture (`#mobile-layout`)
+- **REQ-MOB-01 (Kelegaan Dok Bawah)**: Ruang kelegaan minimum `padding-bottom: calc(140px + env(safe-area-inset-bottom, 28px))` pada `main` bagi memastikan butang tindakan terendah bebas daripada gangguan `#bottom-dock`.
+- **REQ-MOB-02 (Pencegahan Ranapan Flex)**: Elemen dinamik seperti `Agent Stream` dikunci dengan `min-height: 180px; flex-shrink: 0; max-height: 240px` bagi menghalang pengecutan saiz ke 0px pada viewport peranti kecil.
+- **REQ-MOB-03 (Grid 3-Lajur Skrin Kecil)**: Pada paparan `< 640px`, grid pelancar tindakan bertukar secara automatik kepada 3 lajur (`grid-template-columns: repeat(3, 1fr)`) dengan saiz minimum 52px bagi mengelakkan pertindihan teks/ikon.
+- **REQ-MOB-04 (Kelegaan Tatalan Senarai)**: Semua bekas tatalan (`.kanban-column-body`, senarai produk, senarai log) mempunyai `padding-bottom: 36px` agar item terakhir tidak tersembunyi.
+
 ---
 
 ## 5. Non-Functional & Technical Constraints
@@ -126,10 +140,15 @@ Aplikasi ini menamatkan batasan bot Telegram konvensional (had mesej teks 4096 a
 - **Popstate & Back Button**: Menekan butang kembali fizikal telefon atau leretan tepi menutup modal tindanan secara semula jadi menggunakan `window.onpopstate`.
 - **Safe Area Insets**: Mematuhi sepenuhnya `--tg-viewport-height` dan pembolehubah kawasan selamat Telegram.
 
+### 5.3 Pengasingan Runtime FHS 3.0 & Kebersihan Repositori
+- **Pengasingan Data Runtime**: Semua fail pembalak diletakkan di `var/log/`, PID files di `var/run/`, data dinamik di `var/lib/`, dan barisan giliran di `var/spool/`.
+- **Kebersihan Punca Direktori**: Punca direktori dihadkan kepada maksimum 15 fail teras bersih.
+
 ---
 
 ## 6. Release Criteria & Quality Gates
 
-1. **Empirical Code Validation**: Setiap perubahan melepasi ujian `pytest` (0 failures).
-2. **Visual Verification**: Pengesahan paparan visual melalui Chrome DevTools MCP pada kedua-dua resolusi Desktop dan Mobile (390px iPhone standard).
-3. **Tunnel Stability**: Pautan `setChatMenuButton` disahkan aktif dan membuka WebApp dalam masa bawah 2 saat.
+1. **Empirical Code Validation**: Setiap perubahan melepasi ujian `pytest` (0 failures) termasuk `tests/test_dohnut_api.py` (5/5 passing).
+2. **Visual & Layout Verification**: Pengesahan paparan visual melalui Chrome DevTools MCP pada kedua-dua resolusi Desktop dan Mobile (390px iPhone standard & 360px Android standard) dengan 0 ralat bertindih (*0 overlaps*).
+3. **Zero-Jitter Button Verification**: Ujian simulasi hover pada butang tidak menghasilkan sebarang lonjakan koordinat atau ayunan CSS.
+4. **Tunnel Stability**: Pautan `setChatMenuButton` disahkan aktif dan membuka WebApp dalam masa bawah 2 saat tanpa memutuskan proses `cloudflared.exe` (PID 15260).

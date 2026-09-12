@@ -1,6 +1,27 @@
-# Troubleshooting Guide (TROUBLESHOOTING.md)
+---
+title: "Hermes OS & Doh-Nut Sovereign Mission Control — Troubleshooting Runbook"
+document_id: "HERMES-WEBAPP-TRB-001"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
+maintainer: "GangBo Sovereign Architect"
+classification: "ENGINEERING DOCS // TROUBLESHOOTING RUNBOOK"
+lifecycle_status: "PRODUCTION / STABLE"
+---
 
-Use this guide when the Hermes OS WebApp becomes unresponsive, crashes, or exhibits strange behavior.
+# 🩺 Troubleshooting Guide (TROUBLESHOOTING.md)
+
+> **Runtime Diagnostic Runbook.** Step-by-step resolution guides for WebSocket freezes, Cloudflare tunnel drops, UI button jitter, mobile layout collisions, and zombie task clearance.
+
+---
+
+## 📜 Audit & Revision Ledger
+
+| Version | Timestamp (MYT / ISO) | Author / Agent | Scope / Root Cause | Components Updated | Validation Proof |
+|:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Panduan penyelesaian getaran butang (jitter) & pertindihan susun atur mobile. | `docs/TROUBLESHOOTING.md` | Runbook lengkap disahkan. |
+| **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Penyelesaian ralat WebSocket, ping leakage, dan zombie processes. | `scripts/cleanup_tasks.py` | Diagnostic runbook disahkan. |
+
+---
 
 ## 1. Telegram Mini App Hangs on "Loading..."
 - **Cause:** The Cloudflare Tunnel URL might have expired, or `localtunnel` was accidentally used (which injects an interstitial blocker).
@@ -31,3 +52,12 @@ Use this guide when the Hermes OS WebApp becomes unresponsive, crashes, or exhib
 ## 6. n8n Media Generation Stuck
 - **Cause:** The n8n Wait Node isn't receiving the callback from the webhook.
 - **Fix:** Check `.queue/queue.json` lock states. If the queue is stuck, delete the lockfile or clear the JSON array and restart the `queue_manager.py` daemon.
+
+## 7. Buttons Vibrate or Jitter When Hovered
+- **Cause:** An interactive button has the `.glass` class applied or is matched by `MagicBento` pointer-tracking physics selectors (`.card`), causing conflicting magnetic transforms.
+- **Fix:** Remove `.glass` from the button and ensure the JavaScript pointer tracker excludes interactive controls using `.card:not(button):not(.btn)`. Add `:active { transform: scale(0.97) }` with `100ms ease` transition.
+
+## 8. Mobile Bottom Action Buttons Overlap with Dock
+- **Cause:** The `main` container lacks sufficient safe-area bottom padding on mobile viewports.
+- **Fix:** Verify `main` has `padding-bottom: calc(140px + env(safe-area-inset-bottom, 28px)) !important` and list panels have `padding-bottom: 36px`. Confirm `.action-launchers-grid` uses `grid-template-columns: repeat(3, 1fr)` on `< 640px`.
+

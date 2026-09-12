@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — Autonomous Agent Operational Handbook"
 document_id: "HERMES-WEBAPP-AGT-001"
-version: "3.5.0"
-last_updated: "2026-09-12 15:22:00 MYT"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "MISSION-CRITICAL // AGENT DIRECTIVES"
 lifecycle_status: "PRODUCTION / STABLE"
@@ -18,6 +18,7 @@ lifecycle_status: "PRODUCTION / STABLE"
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Root Cause / Rationale | Scope & Directives Touched | Empirical Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0, Kemasan Butang Emil Kowalski (Zero-Jitter), dan Arkitektur Mobile-First Sifar-Bertindih. | `docs/AGENTS.md`, SOP Butang & Mobile Layout, FHS 3.0 runtime separation | 0 jitter butang pada hover, 0 bertindih pada viewport 390x844 & 360x740, 13 fail root. |
 | **`3.5.0`** | 2026-09-12 15:22:00<br>`2026-09-12T07:22:00Z` | Antigravity Conductor | Penyatuan Doh-Nut Mission Control & perlindungan mutlak Telegram Menu Button. | `docs/AGENTS.md`, 5-Phase Lifecycle, WebBridge routing, Anti-AI Slop standard | 5/5 API Endpoints 200 OK, Chrome DevTools MCP Desktop & Mobile (390px) verified. |
 | **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Penyusunan semula mengikut Lifecycle State Machine dan penghapusan polling WebSockets. | `docs/AGENTS.md` | Lulus audit konduktor Hermes v0.19.0. |
 
@@ -89,6 +90,29 @@ Bagi tugasan pembangunan mendalam pada repo `G:\Doh-Nut`, rujuk dan delegasikan 
 6. `dohnut-brand-guardian`: Penjaga bahasa jenama DOH LANGUAGE™ dan penapis slop.
 7. `dohnut-viral-engine`: Pengeluar video vertikal Remotion v4 (9:16) & Edge-TTS.
 8. `dohnut-social-autopilot`: Pengatur jadual muat naik auto Playwright dan penembus shadowban.
+
+### 3.4 Protokol Ketukangan Butang Emil Kowalski (Zero-Jitter Mandate)
+Apabila mengubahsuai butang atau kawalan antaramuka:
+- ❌ **DILARANG meletakkan `.glass` pada butang**: Kelas `.glass` hanya dibenarkan pada bekas kontena statik, bukan elemen interaktif.
+- ❌ **DILARANG memasang pointer tracking fizik pada butang**: Butang tidak boleh menerima transformasi `translate(magnetX, magnetY)` daripada enjin bento.
+- ✅ **Wajib Maklum Balas Taktil**: Setiap butang wajib mempunyai `:active { transform: scale(0.97) }` dengan pemasaan pantas `100ms ease`.
+- ✅ **Kunci Hover Skrin Sentuh**: Semua efek hover wajib dibalut dalam `@media (hover: hover) and (pointer: fine)` bagi menghalang butang tersangkut hover pada telefon.
+
+### 3.5 Arkitektur Mobile-First Sifar-Bertindih (Zero-Overlap Mandate)
+Apabila membina susun atur responsif:
+- ✅ **Kelegaan Bilah Dok Bawah**: Elemen `main` wajib mengekalkan `padding-bottom: calc(140px + env(safe-area-inset-bottom, 28px))`. Dilarang meletakkan butang atau input di kawasan yang bertindih dengan `#bottom-dock`.
+- ✅ **Had Saiz Kontena Flex**: Elemen penstriman dan log (seperti `Agent Stream`) wajib dikunci dengan `min-height: 180px; flex-shrink: 0; max-height: 240px` bagi menghalang elemen dihimpit kepada 0px.
+- ✅ **Grid 3-Lajur Paparan Kecil**: Grid pelancar tindakan pada skrin `< 640px` wajib menggunakan `grid-template-columns: repeat(3, 1fr)` dengan saiz minimum 52px.
+- ✅ **Kelegaan Tatalan Senarai**: Semua ruang tatalan senarai wajib mempunyai `padding-bottom: 36px`.
+
+### 3.6 Pengasingan Runtime FHS 3.0 & Kebersihan Punca Direktori
+- ❌ **DILARANG menulis fail log atau PID sementara di punca repositori**.
+- ✅ Semua fail pembalak runtime **WAJIB** dihantar ke `var/log/`.
+- ✅ Semua fail PID dan locks **WAJIB** dihantar ke `var/run/`.
+- ✅ Semua data berterusan aplikasi **WAJIB** disimpan di `var/lib/`.
+- ✅ Semua barisan tugasan staging **WAJIB** diletakkan di `var/spool/`.
+- ✅ Pakej dan panduan MCP diletakkan di `tools/mcp/`.
+- ✅ Punca direktori projek dihadkan kepada maksimum 15 fail teras sahaja.
 
 ---
 

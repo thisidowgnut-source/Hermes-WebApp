@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — Documentation Hub & Index"
 document_id: "HERMES-DOCS-INDEX-001"
-version: "3.5.0"
-last_updated: "2026-09-12 15:55:00 MYT"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "ENGINEERING DOCS // DIVIO STANDARD"
 lifecycle_status: "ACTIVE"
@@ -11,6 +11,15 @@ lifecycle_status: "ACTIVE"
 # 📚 Documentation Hub — Divio 4-Quadrant Architecture
 
 > **Master index and navigation directory for all engineering, architectural, and operational documentation of Hermes OS & Doh-Nut Sovereign Mission Control, organized according to the Divio Documentation System.**
+
+---
+
+## 📜 Audit & Revision Ledger
+
+| Version | Timestamp (MYT / ISO) | Author / Agent | Scope / Root Cause | Components Updated | Validation Proof |
+|:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0, Kemasan Butang Emil Kowalski (Zero-Jitter), dan Arkitektur Mobile-First Sifar-Bertindih. | `docs/README.md`, `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/AGENTS.md`, `docs/DESIGNS.md`, `docs/API.md` | Divio 4-quadrant verified, 0 broken links, 100% doc alignment. |
+| **`3.5.0`** | 2026-09-12 15:55:00<br>`2026-09-12T07:55:00Z` | GangBo Sovereign Architect | Penstrukturan semula dokumentasi berasaskan sistem 4-kuadran Divio & arkib dokumen lama. | `docs/` tree, `docs/README.md`, `docs/archive/` | 10 fail dokumentasi aktif disahkan selaras. |
 
 ---
 

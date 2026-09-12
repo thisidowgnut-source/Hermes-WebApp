@@ -1,7 +1,27 @@
+---
+title: "Hermes OS & Doh-Nut Sovereign Mission Control — UI/UX Design Specifications"
+document_id: "HERMES-WEBAPP-DSG-001"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
+maintainer: "GangBo Sovereign Architect"
+classification: "ENGINEERING DOCS // DESIGN SYSTEM"
+lifecycle_status: "PRODUCTION / STABLE"
+---
+
 # UI/UX Design Specifications — Hermes OS WebApp
 
-> **Anti-AI Slop Protocol** — Strict design rules for the Telegram Mini App command center.  
+> **Anti-AI Slop Protocol & Emil Kowalski Craft Standard** — Strict design rules and mobile-first ergonomics for the Telegram Mini App and desktop PWA.  
 > **Design Tokens**: See `design-system/hermes-webapp/MASTER.md` for canonical values.
+
+---
+
+## 📜 Audit & Revision Ledger
+
+| Version | Timestamp (MYT / ISO) | Author / Agent | Scope / Root Cause | Components Updated | Validation Proof |
+|:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Kemasan Butang Emil Kowalski (Zero-Jitter) dan Arkitektur Mobile-First Sifar-Bertindih. | `docs/DESIGNS.md`, CSS Button Rules, Safe-Area Equation, Flex Guards | 0 jitter butang pada hover, 0 bertindih pada 390x844 & 360x740. |
+| **`3.5.0`** | 2026-09-12 15:22:00<br>`2026-09-12T07:22:00Z` | Antigravity Conductor | Reka bentuk antaramuka Doh-Nut Sovereign HQ (#mod-dohnut) & 16-modul dock. | `docs/DESIGNS.md`, `static/index.html` | Chrome DevTools Desktop & Mobile verified. |
+| **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Bento-Box Dashboard reka bentuk semula, Termux keyboard, CSS z-index fix. | `static/index.html` | Lulus 84/84 tests. |
 
 ---
 
@@ -51,9 +71,35 @@ This project enforces **high-fidelity, professional, serious aesthetics**. Gener
 
 ### 2.3 Dock Navigation (Bottom)
 - Fixed bottom bar (Mac OS Dock style)
-- 5 primary modules: Stats, Terminal, Browser, Swarm, Voice
-- Horizontal scroll on overflow, snap points
+- 16 subsystems modular launcher with snap points
 - Z-index: 40 (above grid, below overlays)
+
+### 2.4 Mobile-First Zero-Overlap Architecture
+- **Safe-Area Bottom Clearance**:
+  ```css
+  main {
+    padding-bottom: calc(140px + env(safe-area-inset-bottom, 28px)) !important;
+  }
+  ```
+  Guarantees lowest interactive buttons maintain >20px clear buffer above `#bottom-dock`.
+- **Flexbox Collapse Guard**:
+  ```css
+  #agent-stream-container {
+    min-height: 180px !important;
+    flex-shrink: 0 !important;
+    max-height: 240px !important;
+  }
+  ```
+  Prevents flex containers from collapsing to 0px on compact viewports (360x740 Android).
+- **Responsive 3-Column Touch Matrix (<640px)**:
+  ```css
+  .action-launchers-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  ```
+  Each button: `min-height: 52px`, `font-size: 10px`, `padding: 8px 4px` — 0 text truncation, 0 icon collision.
+- **List Scroll Clearance**:
+  All scrollable sub-panels (`.kanban-column-body`, catalog items, logs) feature `padding-bottom: 36px` to ensure the final item is never clipped.
 
 ---
 
@@ -66,6 +112,7 @@ This project enforces **high-fidelity, professional, serious aesthetics**. Gener
 | Browser | Dock item 3 | `translateY(100%)` → `translateY(0)` |
 | Swarm | Dock item 4 | `translateY(100%)` → `translateY(0)` |
 | Audio | Voice badge | `translateY(100%)` → `translateY(0)` |
+| Doh-Nut HQ | Dock item 16 | `translateY(100%)` → `translateY(0)` |
 
 - Overlay obscures dock + header
 - Prominent `(X)` close button (top-right)
@@ -86,6 +133,23 @@ This project enforces **high-fidelity, professional, serious aesthetics**. Gener
 - **Actions**: `[Continue] [Abort] [Retry] [Custom...]`
 - **Timeout**: Visual countdown bar (300s default)
 - **Priority colors**: Low=Gray, Med=Amber, High=Green, Critical=Red
+
+### 3.4 Emil Kowalski Zero-Jitter Button Standard (The Anti-Wobble Rule)
+- **Root Cause Eliminated**: Button jitter was caused by interactive buttons inheriting the `.glass` class and being swept into the `MagicBento` pointer-tracking loop, triggering conflicting magnetic `translate()` offsets against CSS button transforms.
+- **Class Hygiene**: Strictly stripped `.glass` from 52 interactive buttons, tabs, and switches.
+- **Selector Guardrails**:
+  ```javascript
+  const bentoCards = document.querySelectorAll('.card:not(button):not(.btn)');
+  ```
+- **Instant Tactile Feedback**:
+  ```css
+  button:active, .btn:active, .tab-btn:active {
+    transform: scale(0.97) !important;
+    transition: transform 0.1s ease !important;
+  }
+  ```
+- **Touch Hover Scoping**:
+  Hover styles are wrapped in `@media (hover: hover) and (pointer: fine)` so mobile taps do not trigger persistent, sticky hover outlines.
 
 ---
 

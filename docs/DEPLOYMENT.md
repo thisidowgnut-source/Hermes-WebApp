@@ -1,6 +1,27 @@
-# Deployment & Infrastructure Guide (DEPLOYMENT.md)
+---
+title: "Hermes OS & Doh-Nut Sovereign Mission Control — Deployment & Infrastructure Guide"
+document_id: "HERMES-WEBAPP-DEP-001"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
+maintainer: "GangBo Sovereign Architect"
+classification: "ENGINEERING DOCS // DEPLOYMENT RUNBOOK"
+lifecycle_status: "PRODUCTION / STABLE"
+---
 
-While the Hermes WebApp is strictly local-hosted (never deployed to AWS/Vercel), it must be highly available on the host PC. This guide explains how to convert the Python script and Cloudflare tunnel into persistent Windows background services.
+# 🚀 Deployment & Infrastructure Guide (DEPLOYMENT.md)
+
+> **Persistent Host Automation & Service Hardening Guide.** Instructions for managing Uvicorn, Cloudflare Edge Tunnels, and FHS 3.0 directory layout via Windows Services (NSSM) and systemd.
+
+---
+
+## 📜 Audit & Revision Ledger
+
+| Version | Timestamp (MYT / ISO) | Author / Agent | Scope / Root Cause | Components Updated | Validation Proof |
+|:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Pematuhan FHS 3.0 (runtime di `var/`) & pengekalan terowong PID 15260. | `docs/DEPLOYMENT.md`, `var/run/`, `var/log/` | Uvicorn 9220 & Cloudflare tunnel persistent. |
+| **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Penyeliaan NSSM dan automasi skrip `cloudflare_webhook_updater.py`. | `scripts/cloudflare_webhook_updater.py` | Servis Windows auto-start lulus. |
+
+---
 
 ## 1. The Problem
 If you start the WebApp manually by running `uvicorn main:app --port 9220` in a terminal, closing that terminal will kill your remote access. If your PC restarts, you will lose connection until you log in and manually start it again.

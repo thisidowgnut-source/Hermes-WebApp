@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — System Architecture & Operating Guide"
 document_id: "HERMES-WEBAPP-DOC-001"
-version: "3.5.0"
-last_updated: "2026-09-12 15:15:00 MYT"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "MISSION-CRITICAL // SOVEREIGN ENGINE"
 lifecycle_status: "PRODUCTION / STABLE"
@@ -18,6 +18,7 @@ lifecycle_status: "PRODUCTION / STABLE"
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Root Cause / Rationale | Code Scope & Components Touched | Empirical Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0 (Direktori PRO), Penghapusan Jitter Butang (Emil Kowalski Craft), dan Arkitektur Mobile-First Sifar-Bertindih. | `static/index.html`, `var/`, `tools/mcp/`, `docs/`, `tests/test_dohnut_api.py`, `README.md` | FHS 3.0 root 13 fail, 0 jitter butang pada hover, 0 bertindih pada viewport 390x844 & 360x740, 5/5 Doh-Nut tests passing. |
 | **`3.5.0`** | 2026-09-12 15:15:00<br>`2026-09-12T07:15:00Z` | Antigravity Conductor | Penyatuan All-in-1 Mission Control Doh-Nut ke dalam Hermes-WebApp tanpa mengganggu persediaan Telegram Menu Button. | `backend/routers/dohnut.py`, `backend/main.py`, `static/index.html`, `README.md` | 5/5 API Endpoints 200 OK, Chrome DevTools MCP Desktop & Mobile (390px) verified, Zero console errors. |
 | **`3.4.0`** | 2026-09-12 02:30:00<br>`2026-09-11T18:30:00Z` | Conductor Agent | Pengesahan profil media sosial Chrome Profile 50 (`thisisdohnut@gmail.com`) dan integrasi WebBridge port 10087. | `static/index.html`, `scripts/ai_labs_dispatcher.py` | 6 platform disahkan, 62/62 Bun tests pass. |
 | **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Reka bentuk semula Bento-Box Dashboard, pembetulan CSS overlay z-index, integrasi Termux Hacker's Keyboard. | `static/index.html`, `backend/websockets/terminal.py` | 84/84 Pytest suite passed, 14 modul UI lulus ujian headless DOM. |
@@ -284,6 +285,16 @@ Antaramuka Hermes-WebApp dibina mengikut piawaian reka bentuk elit yang menolak 
          transform: translateY(0);
      }
      ```
+5. **Zero-Jitter Button Engine (Emil Kowalski Craft Standard)**:
+   - **Punca Jitter Diasingkan**: Penghapusan kelas `.glass` daripada 52 butang/kawalan interaktif bagi mengelakkan perlanggaran antara enjin fizik `MagicBento` dan transformasi butang.
+   - **Kekangan Selector `MagicBento`**: Enjin kad bento dihadkan hanya menyasarkan kad statik (`.card:not(button):not(.btn)`), menghapuskan pengiraan `translate(magnetX, magnetY)` pada elemen boleh-klik.
+   - **Maklum Balas Haptik/Taktil**: Menambah `:active { transform: scale(0.97); }` dengan transisi `transform 0.1s ease` bagi memberikan klik yang responsif dan mantap tanpa getaran kursor.
+   - **Pengasingan Hover Mudah Alih**: Semua kesan `:hover` dikunci di dalam `@media (hover: hover) and (pointer: fine)` bagi mengelakkan butang "terlekat hover" pada skrin sentuh telefon pintar.
+6. **Mobile-First Zero-Overlap Architecture**:
+   - **Kelegaan Bilah Dok Bawah (Safe Area Clearance)**: Kontena `main` menggunakan `padding-bottom: calc(140px + env(safe-area-inset-bottom, 28px))` — memastikan butang tindakan terendah berada sekurang-kurangnya 20px di atas bilah dok bawah (`#bottom-dock`) dan bilah navigasi OS.
+   - **Pencegahan Ranapan Flex**: Kontena log dan penstriman (seperti `Agent Stream`) dikunci dengan `min-height: 180px; flex-shrink: 0; max-height: 240px`, menghalang elemen daripada dihimpit sehingga 0px pada viewport peranti kecil (360x740 Android).
+   - **Grid Pelancar Tindakan 3-Lajur**: Pada skrin `< 640px`, grid butang bertukar daripada 6-lajur kepada `grid-template-columns: repeat(3, 1fr)` dengan `min-height: 52px`, saiz fon `10px`, dan `padding: 8px 4px` bagi menjamin tiada pertindihan teks atau ikon.
+   - **Kelegaan Tatalan Senarai**: Semua senarai tatalan (`.kanban-column-body`, senarai produk, senarai log) mempunyai `padding-bottom: 36px` bagi mengelakkan item terakhir terpotong.
 
 ---
 
@@ -339,21 +350,26 @@ pytest tests/test_dohnut_api.py -v
 
 ```
 C:\Users\megat\Hermes-WebApp/
-├── main.py                             # Titik masuk utama (Pengesan ketersediaan port dinamik)
+├── main.py                             # Titik masuk utama (Pengesan ketersediaan port dinamik 9220)
 ├── requirements.txt                    # Kebergantungan Python (FastAPI, Uvicorn, Playwright, PySide6)
 ├── pytest.ini                          # Konfigurasi pengujian pytest
+├── conftest.py                         # Konfigurasi persekitaran ujian global
 ├── .env                                # Konfigurasi rahsia (Token Telegram, Port 9220, URL Terowong)
 ├── .env.example                        # Templat rujukan pembolehubah persekitaran
-├── README.md                           # Dokumen spesifikasi sistem lengkap (Fail ini)
+├── .env.mcp.example                    # Templat rujukan pembolehubah MCP server
+├── README.md                           # Dokumen spesifikasi sistem lengkap (v3.6.0)
+├── CHANGELOG.md                        # Rekod versi dan log perubahan kronologi
+├── GEMINI.md                           # Memori operasi tempatan ejen konduktor
+├── social_autopilot.db                 # Pangkalan data SQLite draf promosi sosial tempatan
 │
 ├── backend/
-│   ├── main.py                         # Aplikasi FastAPI utama, pendaftaran lifespan & router
+│   ├── main.py                         # Aplikasi FastAPI utama, lifespan, middleware & pelindung
 │   ├── config.py                       # Pemuat konfigurasi persekitaran
 │   ├── observability.py                # Pembalak berstruktur (JSONL), metrik Prometheus & amaran TG
 │   ├── bot_bridge.py                   # Penghantar mesej keluar Telegram (Outbound-only)
 │   │
 │   ├── routers/
-│   │   ├── dohnut.py                   # [BAHARU] Router All-in-1 Mission Control Doh-Nut & WebBridge
+│   │   ├── dohnut.py                   # Router All-in-1 Mission Control Doh-Nut & WebBridge
 │   │   ├── system.py                   # Router statistik teras, penjelajah fail, dan makro PC
 │   │   ├── swarm.py                    # Router pengurusan dan penjejakan ejen AI
 │   │   └── audio.py                    # Router pemprosesan suara & arahan audio STEM
@@ -370,9 +386,35 @@ C:\Users\megat\Hermes-WebApp/
 │       └── hitl.py                     # /ws/hitl — Saluran intervensi kebenaran manusia
 │
 ├── static/
-│   ├── index.html                      # Single Page Application (SPA) — Antaramuka OLED Bento-Box 16-Modul
+│   ├── index.html                      # Single Page Application (SPA) — OLED Bento-Box 16-Modul (Zero-Jitter & Zero-Overlap)
 │   ├── manifest.json                   # Manifest PWA untuk integrasi Telegram Mini App
 │   └── icons/                          # Aset ikon resolusi pelbagai (72px - 512px)
+│
+├── docs/                               # Dokumentasi Divio 4-Quadrant
+│   ├── README.md                       # Master documentation index hub
+│   ├── PRD.md                          # Product Requirements Document (v3.6.0)
+│   ├── ARCHITECTURE.md                 # Technical Architecture Specification (v3.6.0)
+│   ├── AGENTS.md                       # Autonomous Agent Operational Handbook (v3.6.0)
+│   ├── DESIGNS.md                      # UI/UX Specification (Anti-AI Slop & Emil Kowalski Standard)
+│   ├── API.md                          # REST & WebSocket API Contract
+│   ├── DEPLOYMENT.md                   # Production deployment guide (NSSM & systemd)
+│   ├── SECURITY.md                     # Sovereign security & split-token protocol
+│   ├── SKILLS.md                       # Specialized agent skills registry
+│   ├── TROUBLESHOOTING.md              # Runtime diagnostic & runbook
+│   ├── n8n/                            # Alur kerja automasi JSON n8n
+│   ├── superpowers/                    # Pelan arkitektur & rekod reka bentuk
+│   └── archive/                        # Semakan bersejarah, perancangan, dan patch
+│
+├── tools/
+│   └── mcp/                            # Konfigurasi & skrip pemasangan Model Context Protocol
+│       ├── README-MCP-Installation.md
+│       └── README-MCP-INSTALL-PACKAGE.md
+│
+├── var/                                # Piawaian FHS 3.0 — Pengasingan Runtime & Data Berubah
+│   ├── log/                            # Fail log operasi dan jejak audit
+│   ├── run/                            # PID files dan runtime locks
+│   ├── lib/                            # Data dinamik berterusan aplikasi
+│   └── spool/                          # Barisan mesej dan tugasan pemprosesan
 │
 ├── scripts/
 │   ├── cloudflare_webhook_updater.py   # Pengurus terowong Cloudflare & pengemaskini Chat Menu Button
@@ -386,6 +428,7 @@ C:\Users\megat\Hermes-WebApp/
 │   └── Install-HermesWebAppService.ps1 # Skrip pemasangan servis Windows (NSSM)
 │
 └── tests/
+    ├── test_dohnut_api.py              # Ujian suite Doh-Nut Mission Control & AI Labs (5/5 PASS)
     ├── test_system_api.py              # Ujian integriti endpoint sistem
     ├── test_swarm_api.py               # Ujian endpoint pengurusan swarm
     ├── test_audio_api.py               # Ujian pemprosesan audio

@@ -1,7 +1,27 @@
-# Security Protocol (SECURITY.md)
+---
+title: "Hermes OS & Doh-Nut Sovereign Mission Control — Sovereign Security Protocol"
+document_id: "HERMES-WEBAPP-SEC-001"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
+maintainer: "GangBo Sovereign Architect"
+classification: "MISSION-CRITICAL // SECURITY POLICY"
+lifecycle_status: "PRODUCTION / STABLE"
+---
 
-**Classification:** STRICT CONFIDENTIAL / ROOT ACCESS
-**Scope:** Hermes OS Telegram WebApp
+# 🛡️ Sovereign Security Protocol (SECURITY.md)
+
+> **Zero-Trust Hardening, Directory Sandboxing, and Split-Token Cryptographic Specification.**
+
+---
+
+## 📜 Audit & Revision Ledger
+
+| Version | Timestamp (MYT / ISO) | Author / Agent | Scope / Root Cause | Components Updated | Validation Proof |
+|:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Pematuhan FHS 3.0 sandboxing, sekatan directory traversal & split-token enforcement. | `docs/SECURITY.md`, `var/run/`, `backend/routers/system.py` | Path traversal unit tests passed. |
+| **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Spesifikasi asas sandboxing Playwright dan split-token security plane. | `backend/main.py` | Sifar konflik bot polling. |
+
+---
 
 Because the Hermes OS WebApp grants direct shell (`pwsh.exe`) and physical process control over the host Windows machine, it presents a catastrophic security risk if exposed to the public internet without severe hardening.
 

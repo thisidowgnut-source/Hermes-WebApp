@@ -1,6 +1,27 @@
-# Hermes OS Skills Directory
+---
+title: "Hermes OS & Doh-Nut Sovereign Mission Control — Specialized Skills Registry"
+document_id: "HERMES-WEBAPP-SKL-001"
+version: "3.6.0"
+last_updated: "2026-09-12 16:35:00 MYT"
+maintainer: "GangBo Sovereign Architect"
+classification: "ENGINEERING DOCS // SKILLS REGISTRY"
+lifecycle_status: "PRODUCTION / STABLE"
+---
 
-This document outlines the specialized skills deployed alongside the Hermes OS WebApp to enable autonomous AI agents to leverage the platform.
+# 🧠 Hermes OS Skills Directory (SKILLS.md)
+
+> **Autonomous Agent Skill Registry & Integration Handbook.** Specifications for `hermes-ui-controller`, HITL handover protocol, and Doh-Nut specialized agents.
+
+---
+
+## 📜 Audit & Revision Ledger
+
+| Version | Timestamp (MYT / ISO) | Author / Agent | Scope / Root Cause | Components Updated | Validation Proof |
+|:---|:---|:---|:---|:---|:---|
+| **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Pendaftaran keupayaan Doh-Nut Mission Control & pematuhan FHS 3.0. | `docs/SKILLS.md`, `backend/routers/dohnut.py` | Agent invocation protocols verified. |
+| **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Spesifikasi teras `hermes-ui-controller` dan Vision Handover. | Global skill registry | Ujian interaksi lulus. |
+
+---
 
 ## 1. `hermes-ui-controller`
 
