@@ -727,7 +727,7 @@
             <i data-lucide="zap" style="width: 12px; height: 12px; color: #facc15;"></i>
             <span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7);">1-Tap Action Launchers</span>
         </div>
-        <div style="position: relative; z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <div class="action-launchers-grid" style="position: relative; z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
             <button onclick="executeDirectHermesCommandText('Run full codebase audit and fix all lint/bugs')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
                 <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #4ade80;"></i>
                 <span style="font-size: 8px; font-weight: 700; color: #fff;">Audit & Fix</span>
@@ -802,7 +802,7 @@
     </div>
 
     <!-- AGENT STREAM LOG -->
-    <div class="glass" style="padding: 16px; flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
+    <div id="agent-stream-card" class="glass agent-stream-card" style="padding: 16px; min-height: 180px; flex-shrink: 0; overflow: hidden; display: flex; flex-direction: column;">
         <div class="glass-spotlight"></div>
         <div class="particle-container"></div>
         <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;">
@@ -818,7 +818,7 @@
     </div>
 
     <!-- QUICK ACTIONS (Cyber-Command Grid) -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex-shrink: 0;">
+    <div class="quick-actions-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex-shrink: 0; margin-bottom: 24px;">
         <button onclick="triggerMacro('clean_temp')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Clean temporary files">
             <div class="glass-spotlight"></div>
             <div class="particle-container"></div>
@@ -4656,13 +4656,47 @@
         }
     }
 
-    /* 5. Modules Inner Padding for Mobile */
+    /* 5. Modules Inner Padding & Zero-Overlap for Mobile */
+    main {
+        padding-bottom: calc(130px + env(safe-area-inset-bottom, 24px)) !important;
+    }
+
     @media (max-width: 640px) {
         main {
-            padding: 12px 12px 100px 12px !important; /* extra padding at bottom for dock scroll */
+            padding: 12px 12px calc(140px + env(safe-area-inset-bottom, 28px)) 12px !important;
+            gap: 10px !important;
         }
         .glass {
             padding: 12px !important;
+        }
+        /* 3 columns on small screens for ultra-compact vertical fit and zero-overlap */
+        .action-launchers-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 6px !important;
+        }
+        .action-launchers-grid .btn-action {
+            min-height: 46px !important;
+            padding: 8px 4px !important;
+            font-size: 8px !important;
+        }
+        .quick-actions-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+            margin-bottom: 24px !important;
+        }
+        .quick-actions-grid .btn-action {
+            min-height: 48px !important;
+        }
+        .agent-stream-card {
+            min-height: 180px !important;
+            flex-shrink: 0 !important;
+        }
+        #agent-logs {
+            min-height: 100px !important;
+            max-height: 200px !important;
+        }
+        #process-list, #services-list, #files-list, #kanban-tasks-board {
+            padding-bottom: 36px !important;
         }
     }
 
