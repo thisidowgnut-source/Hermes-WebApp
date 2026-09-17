@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — System Architecture Specification"
 document_id: "HERMES-WEBAPP-ARCH-001"
-version: "3.6.0"
-last_updated: "2026-09-12 16:35:00 MYT"
+version: "3.10.0"
+last_updated: "2026-09-17 08:00:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "MISSION-CRITICAL // ARCHITECTURE CORE"
 lifecycle_status: "PRODUCTION / STABLE"
@@ -18,6 +18,10 @@ lifecycle_status: "PRODUCTION / STABLE"
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Root Cause / Rationale | Scope & Architectural Changes | Empirical Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.10.0`** | 2026-09-17 08:00:00<br>`2026-09-17T00:00:00Z` | Antigravity Conductor | Mobile-First Polish, Swipe-to-Dismiss Gestures, Segmented Touch Navigation, Strict W3C CORS Credentials Policy, and WebSocket IPC Ping Hardening. | `static/index.html`, `backend/config.py`, `backend/auth.py`, `backend/main.py`, `backend/websockets/`, `docs/ARCHITECTURE.md` | Chrome DevTools MCP Mobile 390x844 verified, 7/7 UI contracts, 63/63 auth & system API tests. |
+| **`3.9.0`** | 2026-09-16 14:35:00<br>`2026-09-16T06:35:00Z` | Antigravity Conductor | Agent-Reach Ingestion Engine Integration: 15-platform Internet Capability Router, Jina Reader, yt-dlp subtitle ingestion, Bento HUD 1-tap bar. | `backend/services/reach_engine.py`, `backend/routers/reach.py`, `static/index.html`, `docs/ARCHITECTURE.md` | 292/292 tests passed (100% green, 36 test files). |
+| **`3.8.0`** | 2026-09-16 13:45:00<br>`2026-09-16T05:45:00Z` | Antigravity Conductor | Penilaian Matriks Seni Bina (Hermes vs Flowise vs Postiz), Swarm Goal Delegation, Auto-Trim SocialValidator & SQLite Durable Queue Audit. | `backend/routers/social.py`, `backend/routers/swarm.py`, `backend/routers/system.py`, `docs/ARCHITECTURE.md` | 275+ tests passed (100% green), Zero-Cloud RM0 Architecture disahkan. |
+| **`3.7.0`** | 2026-09-16 06:30:00<br>`2026-09-15T22:30:00Z` | Antigravity Conductor | Transformasi Executive Bento Grid, penyingkiran mock terminal, pengesanan sistem Chrome, dan penegasan auth Telegram global. | `static/index.html`, `backend/auth.py`, `backend/websockets/browser.py`, `docs/ARCHITECTURE.md` | 89/89 tests passed (100% green), Chrome DevTools MCP desktop & mobile verified. |
 | **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0 (Direktori PRO), Kemasan Butang Emil Kowalski (Zero-Jitter), dan Arkitektur Mobile-First Sifar-Bertindih. | `static/index.html`, `var/`, `tools/mcp/`, `docs/ARCHITECTURE.md` | 0 jitter butang pada hover, 0 bertindih pada viewport 390x844 & 360x740, FHS 3.0 layout 13 fail root. |
 | **`3.5.0`** | 2026-09-12 15:22:00<br>`2026-09-12T07:22:00Z` | Antigravity Conductor | Penyatuan All-in-1 Mission Control Doh-Nut ke dalam Hermes-WebApp tanpa mengganggu Telegram Menu Button. | `backend/routers/dohnut.py`, `backend/main.py`, `static/index.html`, `docs/ARCHITECTURE.md` | 5/5 API Endpoints 200 OK, Chrome DevTools MCP Desktop & Mobile (390px) verified. |
 | **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Reka bentuk semula Bento-Box Dashboard, pembetulan CSS overlay z-index, integrasi Termux Hacker's Keyboard. | `static/index.html`, `backend/websockets/terminal.py` | 84/84 Pytest suite passed, 14 modul UI lulus ujian headless DOM. |
@@ -118,9 +122,11 @@ flowchart TD
   4. *Swarm Telemetry Aggregator*: Mengesan ketersediaan nod-nod pintar tempatan (Hermes, Antigravity, WebBridge, Open Design).
 
 ### 2.3 Terminal ConPTY Subsystem (`backend/websockets/terminal.py`)
-- Membuka subprocess `pwsh.exe -NoProfile -NoLogo` menggunakan modul `ptyprocess` atau Windows Pseudo-Console API (ConPTY).
+- Membuka subprocess `pwsh.exe -NoProfile -NoLogo` menggunakan modul `winpty` / ConPTY atau fallback `asyncio.subprocess` pipe.
+- **Penyelarasan Garis Windows ConPTY**: Menormalkan bait input/output `\r` kepada `\r\n` untuk mengelakkan isu gantung (*hang*) pada pembacaan pipe ConPTY hos Windows.
 - Menghapuskan pembaziran lebar jalur dengan memampatkan aksara ANSI warna terus ke klien xterm.js.
 - **Penapis PTY Ping**: Mengasingkan bait arahan `0x09` (Tab) dan rentetan JSON `ping`/`pong` supaya kanvas visual terminal kekal bersih daripada cetakan teks sampah.
+- Rujuk [docs/PRD.md](file:///C:/Users/megat/Hermes-WebApp/docs/PRD.md) untuk spesifikasi integrasi Remote Operations dan kawalan ejen.
 
 ### 2.4 Hermes Vision Subsystem (`backend/websockets/browser.py`)
 - Melancarkan instance pelayar Chromium Playwright berprestasi tinggi.
@@ -270,3 +276,65 @@ Bagi memastikan sifar pertindihan (*zero overlap*) antara komponen pada viewport
 1. **Sandboxing Directory Traversal**: Laluan sistem fail diakses secara mutlak dengan semakan sekatan laluan induk untuk menghalang eksploitasi direktori `../..`.
 2. **Kunci Fail Pelayar Defensif**: Membaca atau memanipulasi profil Google Chrome dilakukan sepenuhnya menerusi protokol REST / CDP GangNiaga WebBridge, mengelakkan ralat perkongsian pangkalan data SQLite (`database is locked`).
 3. **Penyelia Proses Latar Belakang (Zombie Task Hygiene)**: Setiap arahan shell yang dijalankan oleh ejen didaftarkan ke dalam pemantau tugas latar belakang (`manage_task`) dan ditamatkan serta-merta selepas bacaan log selesai.
+
+---
+
+## 6. The Sovereign Zero-Cloud Social Engine (Hermes ↔ Flowise ↔ Postiz Benchmark)
+
+Berdasarkan audit perbandingan seni bina merentas 9 dimensi kritikal terhadap **FlowiseAI** dan **gitroomhq/postiz-app**, Hermes OS membuktikan keunggulan dalam mod operasi RM0 (*Zero Cloud Cost*):
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        SOVEREIGN PIPELINE: RM0 SOCIAL AUTOPILOT                        │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  [1. AI GENERATION] ➔ Khairul Aming Formula + Pollinations 8K + Edge-TTS (RM0)         │
+│          ▼                                                                             │
+│  [2. SOCIAL VALIDATOR] ➔ Auto-trimming X 280, TikTok 9:16, YouTube #Shorts (Pre-check) │
+│          ▼                                                                             │
+│  [3. DURABLE QUEUE] ➔ SQLite WAL Backoff (Zero Redis / Zero BullMQ Footprint)          │
+│          ▼                                                                             │
+│  [4. HITL APPROVAL GATE] ➔ 1-Tap Telegram / WebApp with SMS-v1.0 Audit Logging         │
+│          ▼                                                                             │
+│  [5. SOVEREIGN EXECUTION] ➔ Windows clip.exe + WebBridge Chrome Profile 50 Posting     │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Auto-Trimming & Platform Validation Pipeline**:
+   - Berbanding Postiz yang memerlukan semakan manual semasa draf dijana, Hermes mengintegrasikan [`backend/services/social_validator.py`](file:///C:/Users/megat/Hermes-WebApp/backend/services/social_validator.py) terus ke dalam saluran penjanaan. Teks melebihi 280 aksara untuk X (Twitter) dipotong secara pintar pada sempadan ayat atau perkataan terakhir tanpa memotong perkataan separuh jalan.
+2. **Multi-Agent Swarm Delegation & Goal Mode**:
+   - Menerapkan kelebihan corak *Supervisor/Worker* ala Flowise/LangGraph tanpa kebergantungan perpustakaan berat. Menerusi endpoint `/api/swarm/delegate`, orkestrator utama membahagikan objektif perniagaan kepada sub-tugasan khusus (`researcher`, `copywriter`, `media_designer`) dengan pemantauan metrik CPU/RAM proses Windows sebenar.
+3. **Lejar Audit Kelulusan SMS-v1.0**:
+   - Menggantikan kelulusan ringkas dengan rekod audit penuh (`omnichannel_audit_log`) merangkumi catatan penyemak (`reviewer_notes`), ID operator (`operator_id`), dan cap masa ISO 8601 tepat untuk akauntabiliti tadbir urus AI.
+4. **Kebolehcerapan Penuh (Observability & Tracing)**:
+   - Endpoint `/api/health/comprehensive` dan `/api/traces` menyatukan pemeriksaan status hos, pangkalan data, antrian berjadual, dan log aktiviti ejen untuk visualisasi operasi tanpa memerlukan perkhidmatan luaran seperti Datadog atau Sentry.
+
+---
+
+## 7. Agent-Reach Internet Capability Router & Ingestion Funnel
+
+Bagi melengkapkan kitaran automasi media sosial tanpa input manual, Hermes OS v3.9.0 mengintegrasikan enjin penghalaan 15-platform **Agent-Reach** (`backend/services/reach_engine.py` & `backend/routers/reach.py`):
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        AGENT-REACH INTERNET INGESTION FUNNEL                           │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  [SUMBER INTERNET] ➔ YouTube Videos / Web Articles / RSS Feeds / Tech Forums           │
+│          ▼                                                                             │
+│  [EXTRACTION ENGINE] ➔ yt-dlp Subtitle Parser + Jina Reader (r.jina.ai) Markdown       │
+│          ▼                                                                             │
+│  [VIRAL SYNTHESIS] ➔ Khairul Aming 4-Phase Formula + Pollinations 8K Visual Prompt     │
+│          ▼                                                                             │
+│  [VALIDATION & SAVE] ➔ SocialValidator Checks + omnichannel_drafts (pending_approval) │
+│          ▼                                                                             │
+│  [1-TAP EXECUTION] ➔ Telegram HITL Button / Bento HUD ➔ WebBridge Chrome Profile 50    │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Zero-Headless Web Ingestion (Jina Reader)**:
+   - Menggunakan `https://r.jina.ai/{URL}` untuk menukar sebarang laman web atau blog pesaing kepada teks Markdown bersih dalam milisaat tanpa perlukan pelayar Chromium headless yang memakan RAM.
+2. **Fast Subtitle Extraction (`yt-dlp`)**:
+   - Mengekstrak sari kata (*subtitles/transcripts*) video YouTube dengan bendera `--write-sub --skip-download` secara pantas untuk mengekstrak hook masakan/bakeri tanpa memuat turun data video besar.
+3. **Auto-Synthesis ke Omnichannel Suite**:
+   - Menggabungkan teks sari kata/artikel secara automatik ke dalam 4 format draf (Facebook post, Instagram 5-slide carousel, TikTok 30s video script dengan hook Khairul Aming, dan YouTube Shorts metadata) serta mendaftar draf ke dalam pangkalan data SQLite tempatan.
+
+

@@ -13,6 +13,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/xterm-addon-webgl@0.16.0/lib/xterm-addon-webgl.js"></script>
+    <link rel="stylesheet" href="/static/mission-control.css" />
+    <script defer src="/static/mission-control.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -30,126 +32,41 @@
         ::-webkit-scrollbar { width: 0; background: transparent; }
 
         /* ============================================
-           1. DOT FIELD BACKGROUND
+           1. CANVAS & PARTICLES CLEANUP (Anti-AI Slop)
            ============================================ */
         #dot-field-container {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            pointer-events: none;
-        }
-        #dot-canvas {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-        }
-        #dot-svg {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        #dot-glow {
-            opacity: 0;
-            will-change: opacity, cx, cy;
+            display: none !important;
         }
 
         /* ============================================
-           2. MAGIC BENTO CARDS (Vanilla Port)
+           2. SOVEREIGN BENTO CARDS (Linear / Vercel Pro)
            ============================================ */
         .glass {
-            background: rgba(255, 255, 255, 0.025);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 1rem;
+            background: #0d0f17;
+            border: 1px solid #1c2030;
+            border-radius: 12px;
             position: relative;
             overflow: hidden; 
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-            
-            --glow-x: 50%;
-            --glow-y: 50%;
-            --glow-intensity: 0;
-            --glow-radius: 200px;
-            --glow-color: 168, 85, 247;
-        }
-
-        .glass:active {
-            border-color: rgba(255, 255, 255, 0.12);
+            transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
         }
 
         .glass:hover {
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4), 0 0 30px rgba(var(--glow-color), 0.15);
+            border-color: #2b334c;
+            background: #121522;
         }
 
-        .glass::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            padding: 2px;
-            background: radial-gradient(
-                var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                rgba(var(--glow-color), calc(var(--glow-intensity) * 0.8)) 0%,
-                rgba(var(--glow-color), calc(var(--glow-intensity) * 0.3)) 30%,
-                transparent 60%
-            );
-            border-radius: inherit;
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: exclude;
-            pointer-events: none;
-            opacity: 1;
-            z-index: 10;
+        .glass:active {
+            transform: scale(0.995);
+            border-color: #384260;
         }
 
-        .glass-spotlight {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(
-                calc(var(--glow-radius) * 1.5) circle at var(--glow-x) var(--glow-y),
-                rgba(var(--glow-color), calc(var(--glow-intensity) * 0.15)) 0%,
-                transparent 50%
-            );
-            pointer-events: none;
-            z-index: 0;
+        .glass::after, .glass-spotlight, .particle-container, .bento-particle {
+            display: none !important;
         }
 
-        .particle-container {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .bento-particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background: rgba(var(--glow-color), 1);
-            box-shadow: 0 0 6px rgba(var(--glow-color), 0.6);
-            transform: translate(-50%, -50%) scale(0);
-            opacity: 0;
-            will-change: transform, opacity;
-        }
-
-        .bento-particle::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            background: rgba(var(--glow-color), 0.2);
-            border-radius: 50%;
-            z-index: -1;
-        }
 
         /* ============================================
-           3. MAC OS DOCK (React Bits Port)
+           3. PRO COMMAND DOCK (Ergonomic & Clean)
            ============================================ */
         .dock-outer {
             position: fixed;
@@ -158,7 +75,7 @@
             justify-content: center;
             align-items: center;
             z-index: 40;
-            padding: 0 12px max(env(safe-area-inset-bottom, 0), 12px) 12px;
+            padding: 0 10px max(env(safe-area-inset-bottom, 0), 10px) 10px;
             pointer-events: none;
             overflow: visible;
         }
@@ -167,14 +84,14 @@
             pointer-events: auto;
             display: flex;
             align-items: center;
-            gap: 8px;
-            border-radius: 20px;
-            background: rgba(12, 10, 16, 0.88);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 8px 12px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8);
+            gap: 6px;
+            border-radius: 14px;
+            background: rgba(13, 16, 24, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid #1f2538;
+            padding: 6px 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
             position: relative;
             max-width: 100%;
             overflow-x: auto;
@@ -182,7 +99,6 @@
             scrollbar-width: none;
             touch-action: pan-x;
             -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
         }
 
         .dock-panel::-webkit-scrollbar {
@@ -195,29 +111,25 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 48px;    
-            height: 48px;
-            min-width: 48px;
-            min-height: 48px;
+            width: 44px;    
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
             flex-shrink: 0;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            background: #141724;
+            border: 1px solid #20263a;
+            color: #94a3b8;
             cursor: pointer;
             outline: none;
-            will-change: width, height;
-            transition: background 0.2s, border-color 0.2s, color 0.2s;
-        }
-
-        .dock-panel:hover .dock-item {
-            transition: background 0.2s, border-color 0.2s, color 0.2s; /* Instant reaction for mousemove */
+            transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
         }
 
         .dock-item.active, .dock-item:hover {
             color: #fff;
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: #1e2438;
+            border-color: #38bdf8;
+            transform: translateY(-2px);
         }
         
         .dock-icon {
@@ -229,9 +141,8 @@
         }
 
         .dock-icon i, .dock-icon svg { 
-            width: 45%; 
-            height: 45%; 
-            transition: width 0.2s, height 0.2s;
+            width: 48%; 
+            height: 48%; 
         }
 
         .dock-label {
@@ -239,19 +150,20 @@
             top: -38px;
             left: 50%;
             transform: translateX(-50%) translateY(10px);
-            background: rgba(18, 15, 23, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #141724;
+            border: 1px solid #2d354d;
             color: #fff;
-            padding: 5px 10px;
-            border-radius: 8px;
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s, transform 0.2s;
+            transition: opacity 0.15s, transform 0.15s;
             white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
         }
 
         .dock-item:hover .dock-label {
@@ -261,14 +173,13 @@
 
         .glow-indicator {
             position: absolute;
-            bottom: -6px;
-            width: 20px;
-            height: 3px;
-            background: #fff;
+            bottom: -3px;
+            width: 16px;
+            height: 2px;
+            background: #38bdf8;
             border-radius: 2px;
-            filter: blur(3px);
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.2s;
             pointer-events: none;
         }
 
@@ -276,7 +187,6 @@
             opacity: 1;
         }
 
-        /* Touch-based dock label for mobile (css class toggle approach) */
         .dock-item.label-shown .dock-label {
             opacity: 1 !important;
             transform: translateX(-50%) translateY(0px) !important;
@@ -676,174 +586,199 @@
 </div>
 
 <!-- MAIN DASHBOARD -->
-<main style="position: relative; z-index: 1; height: var(--tg-viewport-height, 100vh); display: flex; flex-direction: column; padding: 16px 16px 110px 16px; gap: 12px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+<main style="position: relative; z-index: 1; height: var(--tg-viewport-height, 100vh); display: flex; flex-direction: column; padding: 14px 16px 110px 16px; gap: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
 
     <!-- HEADER -->
-    <header style="display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+    <header style="display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; padding-bottom: 2px;">
         <div>
             <h1 style="font-size: 18px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;">
-                <i data-lucide="cpu" class="logo-pulse" style="width: 18px; height: 18px; color: rgba(255,255,255,0.6);"></i>
+                <i data-lucide="cpu" class="logo-pulse" style="width: 18px; height: 18px; color: #38bdf8;"></i>
                 <span id="title-rotator" class="text-rotate"></span>
             </h1>
             <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
                 <div class="status-dot" id="status-dot"></div>
-                <span style="font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.3);" id="status-text">Sovereign Node Active</span>
+                <span style="font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: #94a3b8;" id="status-text">Sovereign Node Active</span>
             </div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <div id="voice-toggle-badge" onclick="toggleVoiceRecording()" style="display: flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 10px; border-radius: 6px; font-size: 9px; color: #93c5fd; cursor: pointer; transition: all 0.2s ease;">
+            <div id="voice-toggle-badge" onclick="toggleVoiceRecording()" style="display: flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); padding: 5px 10px; border-radius: 6px; font-size: 9px; color: #93c5fd; cursor: pointer; transition: all 0.2s ease;">
                 <i data-lucide="mic" id="voice-badge-icon" style="width: 12px; height: 12px;"></i>
                 <span id="voice-badge-text">Mic Off</span>
                 <div id="voice-level-indicator" style="width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3);"></div>
             </div>
-            <div id="obsidian-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(147, 51, 234, 0.15); border: 1px solid rgba(147, 51, 234, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 8px; color: #d8b4fe;">
-                <i data-lucide="book-open" style="width: 10px; height: 10px;"></i>
-                <span id="obsidian-note-title">Obsidian Idle</span>
+            <div id="obsidian-badge" onclick="openModule('obsgraph')" style="display: flex; align-items: center; gap: 5px; background: rgba(147, 51, 234, 0.12); border: 1px solid rgba(147, 51, 234, 0.3); padding: 5px 10px; border-radius: 6px; font-size: 9px; color: #d8b4fe; cursor: pointer;">
+                <i data-lucide="book-open" style="width: 12px; height: 12px;"></i>
+                <span id="obsidian-note-title">Obsidian Vault</span>
             </div>
-            <div class="glass" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center;">
-                <div class="glass-spotlight"></div>
-                <div class="particle-container"></div>
-                <i data-lucide="shield-check" style="position: relative; z-index: 2; width: 14px; height: 14px; color: rgba(255,255,255,0.5);"></i>
-            </div>
+            <button onclick="openModule('appdrawer')" class="btn-action" style="padding: 5px 10px; font-size: 9px; background: #141724; border: 1px solid #272f44; color: #cbd5e1; border-radius: 6px; cursor: pointer;" title="Open All 16 Sub-Systems" aria-label="Open App Catalog">
+                <i data-lucide="layout-grid" style="width: 12px; height: 12px; color: #38bdf8;"></i>
+                <span>Catalog</span>
+            </button>
         </div>
     </header>
 
-    <!-- DIRECT HERMES AI COMMAND BAR (Mobile First 1-Tap Control) -->
-    <div class="glass" style="padding: 10px 14px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(168, 85, 247, 0.35); background: rgba(168, 85, 247, 0.08); border-radius: 12px; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.1);">
-        <div class="glass-spotlight"></div>
-        <div class="particle-container"></div>
-        <i data-lucide="sparkles" style="position: relative; z-index: 2; width: 16px; height: 16px; color: #c084fc; flex-shrink: 0;"></i>
-        <input type="text" id="direct-hermes-input" aria-label="Direct Hermes command input" placeholder="Give direct instruction to Hermes OS..." onkeydown="if(event.key==='Enter') executeDirectHermesCommand()" style="position: relative; z-index: 2; flex: 1; background: transparent; border: none; outline: none; font-size: 11px; font-weight: 500; color: #ffffff; font-family: inherit;">
-        <button onclick="executeDirectHermesCommand()" class="btn-action" style="position: relative; z-index: 2; padding: 6px 12px; font-size: 9px; font-weight: 800; background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.5); color: #e9d5ff; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;" aria-label="Run command">RUN</button>
+    <!-- DIRECT HERMES AI COMMAND PALETTE (Raycast / Linear Standard) -->
+    <div class="glass cmd-palette-bar" style="padding: 10px 14px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; background: #0c0e17; border: 1px solid #1f2538; border-radius: 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);">
+        <i data-lucide="terminal" style="width: 16px; height: 16px; color: #38bdf8; flex-shrink: 0;"></i>
+        <input type="text" id="direct-hermes-input" aria-label="Direct Hermes command input" placeholder="Type a task or command for Hermes OS (e.g. 'run audit', 'spawn swarm', 'sync tunnel')..." onkeydown="if(event.key==='Enter') executeDirectHermesCommand()" style="flex: 1; background: transparent; border: none; outline: none; font-size: 12px; font-weight: 500; color: #f8fafc; font-family: inherit;">
+        <span style="font-size: 9px; color: #64748b; background: #141824; border: 1px solid #22293d; padding: 2px 6px; border-radius: 4px; font-family: monospace;">↵ ENTER</span>
+        <button onclick="executeDirectHermesCommand()" class="btn-action" style="padding: 6px 14px; font-size: 10px; font-weight: 800; background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; cursor: pointer;" aria-label="Run command">RUN</button>
     </div>
 
-
-
-    <!-- 1-TAP WORKFLOW LAUNCHERS (High Utility Action Grid) -->
-    <div class="glass" style="padding: 14px; flex-shrink: 0;">
-        <div class="glass-spotlight"></div>
-        <div class="particle-container"></div>
-        <div style="position: relative; z-index: 2; display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
-            <i data-lucide="zap" style="width: 12px; height: 12px; color: #facc15;"></i>
-            <span style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7);">1-Tap Action Launchers</span>
+    <!-- LIVE SWARM TELEMETRY & WORKER TICKER -->
+    <div id="swarm-telemetry-banner" class="glass" style="padding: 8px 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; background: #0b0d14; border: 1px solid #1c2333; border-radius: 8px; font-size: 10px; margin-bottom: 4px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="live-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px #4ade80; display: inline-block;"></span>
+            <span style="font-weight: 800; color: #c084fc; text-transform: uppercase; letter-spacing: 0.06em;">AUTONOMOUS SWARM:</span>
+            <span id="swarm-telemetry-text" style="color: #cbd5e1; font-weight: 500;">All Systems Operational · 3 Specialists Active · SQLite WAL Scheduler Polling (5s)</span>
         </div>
-        <div class="action-launchers-grid" style="position: relative; z-index: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-            <button onclick="executeDirectHermesCommandText('Run full codebase audit and fix all lint/bugs')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
-                <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #4ade80;"></i>
-                <span style="font-size: 8px; font-weight: 700; color: #fff;">Audit & Fix</span>
-            </button>
-            <button onclick="executeDirectHermesCommandText('Run pytest suite on tests/')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
-                <i data-lucide="play" style="width: 16px; height: 16px; color: #38bdf8;"></i>
-                <span style="font-size: 8px; font-weight: 700; color: #fff;">Run Pytest</span>
-            </button>
-            <button onclick="triggerMacro('cleanup_zombies')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
-                <i data-lucide="skull" style="width: 16px; height: 16px; color: #ff79c6;"></i>
-                <span style="font-size: 8px; font-weight: 700; color: #fff;">Kill Zombies</span>
-            </button>
-            <button onclick="executeDirectHermesCommandText('Sync Obsidian Vault MOC and rebuild wikilinks')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
-                <i data-lucide="book-open" style="width: 16px; height: 16px; color: #c084fc;"></i>
-                <span style="font-size: 8px; font-weight: 700; color: #fff;">Sync Vault</span>
-            </button>
-            <button onclick="quickSpawnAgent()" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
-                <i data-lucide="bot" style="width: 16px; height: 16px; color: #a855f7;"></i>
-                <span style="font-size: 8px; font-weight: 700; color: #fff;">Spawn Swarm</span>
-            </button>
-            <button onclick="triggerMacro('sync_webhook')" class="btn-action" style="padding: 8px; flex-direction: column; gap: 4px; border-radius: 8px; cursor: pointer;">
-                <i data-lucide="link-2" style="width: 16px; height: 16px; color: #50fa7b;"></i>
-                <span style="font-size: 8px; font-weight: 700; color: #fff;">Sync Tunnel</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span id="swarm-telemetry-pill" style="font-size: 8px; font-weight: 700; padding: 2px 8px; border-radius: 3px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); display: inline-flex; align-items: center; gap: 4px;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #4ade80; display: inline-block;"></span> LIVE</span>
+            <button onclick="refreshSwarmTelemetry()" class="btn-action" style="font-size: 8px; padding: 2px 6px; border-radius: 3px;" title="Refresh Swarm Telemetry" aria-label="Refresh Swarm Telemetry">
+                <i data-lucide="refresh-cw" style="width: 8px; height: 8px;"></i>
             </button>
         </div>
     </div>
 
-    <!-- DOH-NUT SOVEREIGN HQ BENTO CARD -->
-    <div id="dohnut-bento-card" class="glass card" style="padding: 14px 16px; flex-shrink: 0; cursor: pointer; border-left: 3px solid #ef9fbd; background: linear-gradient(135deg, rgba(239, 159, 189, 0.08) 0%, rgba(0,0,0,0.4) 100%); margin-bottom: 2px;" onclick="openModule('dohnut')">
-        <div class="glass-spotlight"></div>
-        <div class="particle-container"></div>
-        <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 16px;">🍩</span>
-                <span class="card-title" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #ef9fbd;">Doh-Nut Sovereign HQ</span>
+    <!-- RESPONSIVE BENTO GRID (Anti-AI Slop Architecture) -->
+    <div class="dashboard-bento-grid">
+
+        <!-- LEFT COLUMN: SYSTEM OPERATIONS & AGENT STREAM -->
+        <div class="dashboard-col">
+            
+            <!-- 1-TAP SYSTEM MACRO DECK (6 Unified High-Impact Actions) -->
+            <div class="glass" style="padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="zap" style="width: 14px; height: 14px; color: #facc15;"></i>
+                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #cbd5e1;">System Operations & Macros</span>
+                    </div>
+                    <span style="font-size: 8px; color: #64748b; font-weight: 600;">1-TAP RAPID ACTION</span>
+                </div>
+                <div class="action-launchers-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <button onclick="executeDirectHermesCommandText('Run full codebase audit and fix all lint/bugs')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                        <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #4ade80;"></i>
+                        <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Audit & Fix</span>
+                    </button>
+                    <button onclick="executeDirectHermesCommandText('Run pytest suite on tests/')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                        <i data-lucide="play-circle" style="width: 16px; height: 16px; color: #38bdf8;"></i>
+                        <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Run Pytest</span>
+                    </button>
+                    <button onclick="triggerMacro('cleanup_zombies')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                        <i data-lucide="skull" style="width: 16px; height: 16px; color: #f43f5e;"></i>
+                        <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Kill Zombies</span>
+                    </button>
+                    <button onclick="triggerMacro('clean_temp')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #fbbf24;"></i>
+                        <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Clean Temp</span>
+                    </button>
+                    <button onclick="triggerMacro('sync_webhook')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                        <i data-lucide="link-2" style="width: 16px; height: 16px; color: #34d399;"></i>
+                        <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Sync Tunnel</span>
+                    </button>
+                    <button onclick="triggerMacro('lock_pc')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                        <i data-lucide="lock" style="width: 16px; height: 16px; color: #a78bfa;"></i>
+                        <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Lock PC</span>
+                    </button>
+                </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span id="dohnut-kpi-rev" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">RM 1,420.50</span>
-                <span id="dohnut-kpi-orders" style="background: rgba(239, 159, 189, 0.2); border: 1px solid rgba(239, 159, 189, 0.4); color: #ef9fbd; font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">8 IN PIPELINE</span>
+
+            <!-- AGENT ACTIVITY STREAM -->
+            <div id="agent-stream-card" class="glass agent-stream-card" style="padding: 14px; min-height: 200px; flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="terminal" style="width: 14px; height: 14px; color: #38bdf8;"></i>
+                        <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #cbd5e1;">Agent Activity Stream</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 8px; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700;">LIVE LOGS</span>
+                        <button onclick="fetchLogs()" class="btn-action" style="padding: 3px 8px; font-size: 8px; border-radius: 4px;" aria-label="Sync logs">Sync</button>
+                    </div>
+                </div>
+                <div id="agent-logs" style="flex: 1; overflow-y: auto; min-height: 120px; max-height: 260px; background: #07080d; border: 1px solid #161b2a; border-radius: 6px; padding: 10px; font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 10px; line-height: 1.6;">
+                    <div class="log-system">[SYS] Hermes OS Node active. Listening for agent requests...</div>
+                </div>
             </div>
+
         </div>
-        <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-                <span style="font-size: 11px; font-weight: 700; color: #fff;">Good Vibe. Good Doh.</span>
-                <span style="font-size: 8px; color: rgba(255,255,255,0.5);">Omnichannel Social (6) · Baking Kanban · 10 AI Labs</span>
+
+        <!-- RIGHT COLUMN: CORE ENGINES (DOH-NUT HQ & SWARM OPS) -->
+        <div class="dashboard-col">
+
+            <!-- DOH-NUT SOVEREIGN HQ BENTO CARD -->
+            <div id="dohnut-bento-card" class="glass card" style="padding: 14px; cursor: pointer; border: 1px solid #3b2030; background: #0f0a12; border-left: 3px solid #ef9fbd; border-radius: 10px;" onclick="openModule('dohnut')">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 16px; line-height: 1;">🍩</span>
+                        <span class="card-title" style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #ef9fbd;">Doh-Nut Sovereign HQ</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span id="dohnut-kpi-rev" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">RM 1,420.50</span>
+                        <span id="dohnut-kpi-orders" style="background: rgba(239, 159, 189, 0.2); border: 1px solid rgba(239, 159, 189, 0.4); color: #ef9fbd; font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">8 IN PIPELINE</span>
+                    </div>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #fff;">Good Vibe. Good Doh.</div>
+                    <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">6 Social Platforms (FB, IG, TT, Threads, X, YT) · Kitchen Kanban · 10 AI Labs</div>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button onclick="event.stopPropagation(); openModule('dohnut')" class="btn-primary" style="flex: 1; padding: 6px 10px; font-size: 9px; font-weight: 700; background: #ef9fbd; color: #1e1219; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;" aria-label="Open Doh-Nut">
+                        <span>Launch HQ</span>
+                        <i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i>
+                    </button>
+                    <button onclick="event.stopPropagation(); openModule('social')" class="btn-action" style="padding: 6px 10px; font-size: 9px; border-color: rgba(239, 159, 189, 0.4); color: #ef9fbd; border-radius: 6px;" aria-label="Omni Social">
+                        <i data-lucide="share-2" style="width: 12px; height: 12px;"></i>
+                        <span>Social</span>
+                    </button>
+                </div>
             </div>
-            <button onclick="event.stopPropagation(); openModule('dohnut')" class="btn-action" style="padding: 4px 8px; font-size: 8px; border-color: rgba(239, 159, 189, 0.5); color: #ef9fbd;" aria-label="Open Doh-Nut">Open HQ ➔</button>
+
+            <!-- MULTI-AGENT SWARM BENTO CARD -->
+            <div id="swarm-bento-card" class="glass" style="padding: 14px; cursor: pointer; border: 1px solid #231b38; background: #0c0914; border-left: 3px solid #a855f7; border-radius: 10px;" onclick="openModule('swarm', document.querySelector('.dock-item[data-idx=\'6\']'))">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="bot" style="width: 14px; height: 14px; color: #c084fc;"></i>
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #e9d5ff;">Autonomous Swarm</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span id="swarm-active-badge" style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; font-size: 8px; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">0 Active</span>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <div>
+                        <div style="font-size: 12px; font-weight: 700; color: #fff;" id="swarm-summary-text">0 Agents Registered</div>
+                        <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;" id="swarm-metrics-text">CPU: 0.0% | RAM: 0.0 MB</div>
+                    </div>
+                    <div style="display: flex; gap: 4px;" id="swarm-status-dots"></div>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button onclick="event.stopPropagation(); quickSpawnAgent()" class="btn-action" style="flex: 1; padding: 6px 10px; font-size: 9px; font-weight: 700; background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.5); color: #e9d5ff; border-radius: 6px;" aria-label="Quick Spawn">+ Spawn Agent</button>
+                    <button onclick="event.stopPropagation(); openModule('swarm')" class="btn-action" style="padding: 6px 10px; font-size: 9px; border-radius: 6px;" aria-label="Open Swarm Control">Manage ➔</button>
+                </div>
+            </div>
+
+            <!-- KNOWLEDGE & WORKFLOW ACCESS STRIP -->
+            <div class="glass" style="padding: 10px; border-radius: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div onclick="openModule('kanban')" style="padding: 8px 10px; background: #111420; border: 1px solid #1f2538; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="kanban" style="width: 16px; height: 16px; color: #e879f9; flex-shrink: 0;"></i>
+                    <div>
+                        <div style="font-size: 10px; font-weight: 700; color: #fff;">Kanban Board</div>
+                        <div style="font-size: 8px; color: #94a3b8;">Task Pipeline</div>
+                    </div>
+                </div>
+                <div onclick="openModule('obsgraph')" style="padding: 8px 10px; background: #111420; border: 1px solid #1f2538; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="git-fork" style="width: 16px; height: 16px; color: #38bdf8; flex-shrink: 0;"></i>
+                    <div>
+                        <div style="font-size: 10px; font-weight: 700; color: #fff;">Obsidian Graph</div>
+                        <div style="font-size: 8px; color: #94a3b8;">2,708 Notes</div>
+                    </div>
+                </div>
+            </div>
+
         </div>
+
     </div>
 
-    <!-- SWARM BENTO CARD -->
-    <div id="swarm-bento-card" class="glass" style="padding: 16px; flex-shrink: 0; cursor: pointer;" onclick="openModule('swarm', document.querySelector('.dock-item[data-idx=\'6\']'))">
-        <div class="glass-spotlight"></div>
-        <div class="particle-container"></div>
-        <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="bot" style="width: 14px; height: 14px; color: #a855f7;"></i>
-                <span style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7);">Multi-Agent Swarm</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span id="swarm-active-badge" style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; font-size: 8px; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">0 Active</span>
-                <button onclick="event.stopPropagation(); quickSpawnAgent()" class="btn-action" style="padding: 4px 8px; font-size: 8px;" aria-label="Quick Spawn">+ Spawn</button>
-            </div>
-        </div>
-        <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-                <span style="font-size: 11px; font-weight: 700; color: #fff;" id="swarm-summary-text">0 Agents Registered</span>
-                <span style="font-size: 9px; color: rgba(255,255,255,0.4);" id="swarm-metrics-text">CPU: 0.0% | RAM: 0.0 MB</span>
-            </div>
-            <div style="display: flex; gap: 4px;" id="swarm-status-dots"></div>
-        </div>
-    </div>
-
-    <!-- AGENT STREAM LOG -->
-    <div id="agent-stream-card" class="glass agent-stream-card" style="padding: 16px; min-height: 180px; flex-shrink: 0; overflow: hidden; display: flex; flex-direction: column;">
-        <div class="glass-spotlight"></div>
-        <div class="particle-container"></div>
-        <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="terminal" style="width: 12px; height: 12px; color: rgba(255,255,255,0.3);"></i>
-                <span style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.3);">Agent Stream</span>
-            </div>
-            <button onclick="fetchLogs()" class="btn-action" style="padding: 4px 10px; font-size: 8px;" aria-label="Sync logs">Sync</button>
-        </div>
-        <div id="agent-logs" style="position: relative; z-index: 2; flex: 1; overflow-y: auto; min-height: 0;">
-            <div class="log-system">Initializing...</div>
-        </div>
-    </div>
-
-    <!-- QUICK ACTIONS (Cyber-Command Grid) -->
-    <div class="quick-actions-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex-shrink: 0; margin-bottom: 24px;">
-        <button onclick="triggerMacro('clean_temp')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Clean temporary files">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <i data-lucide="trash-2" style="position: relative; z-index: 2; width: 14px; height: 14px; color: #ff5555;"></i>
-            <span style="position: relative; z-index: 2; font-size: 8px;">Clean Temp</span>
-        </button>
-        <button onclick="triggerMacro('lock_pc')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Lock PC">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <i data-lucide="lock" style="position: relative; z-index: 2; width: 14px; height: 14px; color: #ffb86c;"></i>
-            <span style="position: relative; z-index: 2; font-size: 8px;">Lock PC</span>
-        </button>
-        <button onclick="triggerMacro('cleanup_zombies')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Kill Zombies">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <i data-lucide="skull" style="position: relative; z-index: 2; width: 14px; height: 14px; color: #ff79c6;"></i>
-            <span style="position: relative; z-index: 2; font-size: 8px;">Kill Zombies</span>
-        </button>
-        <button onclick="triggerMacro('sync_webhook')" class="btn-action" style="padding: 10px 4px; flex-direction: column; gap: 4px;" aria-label="Sync Tunnel">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <i data-lucide="link-2" style="position: relative; z-index: 2; width: 14px; height: 14px; color: #50fa7b;"></i>
-            <span style="position: relative; z-index: 2; font-size: 8px;">Sync Tunnel</span>
-        </button>
-    </div>
 </main>
 
 <!-- BOTTOM DOCK (Mac OS Style) -->
@@ -1017,6 +952,13 @@
                     <div>
                         <div style="font-size: 11px; font-weight: 700; color: #fff;">Services Manager</div>
                         <div style="font-size: 8px; color: rgba(255,255,255,0.4);">Windows Services</div>
+                    </div>
+                </div>
+                <div onclick="openModule('dohnut'); switchDohnutTab('missions');" class="glass" style="padding: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-radius: 8px; border: 1px solid rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.05);">
+                    <i data-lucide="target" style="width: 20px; height: 20px; color: #a855f7;"></i>
+                    <div>
+                        <div style="font-size: 11px; font-weight: 700; color: #fff;">Mission Control</div>
+                        <div style="font-size: 8px; color: rgba(255,255,255,0.4);">AGY Autonomous Ops</div>
                     </div>
                 </div>
             </div>
@@ -1648,7 +1590,7 @@
             </div>
             
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="omni-topic-input" placeholder="Masukkan Topik / Idea Viral (e.g. 5 Rahsia Automasi Bisnes 2026)..." style="flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 12px 14px; border-radius: 6px; font-size: 12px;">
+                <input type="text" id="omni-topic-input" aria-label="Omnichannel viral topic input" placeholder="Masukkan Topik / Idea Viral (e.g. 5 Rahsia Automasi Bisnes 2026)..." style="flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 12px 14px; border-radius: 6px; font-size: 12px;">
                 <button type="button" onclick="generateOmniSuite()" class="btn-primary" style="padding: 10px 18px; display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #a855f7, #6366f1); border: none; color: #fff; font-weight: 700; border-radius: 6px; cursor: pointer;">
                     <i data-lucide="wand-2" style="width: 14px; height: 14px;"></i> Generate All
                 </button>
@@ -1721,7 +1663,7 @@
 <div id="mod-dohnut" class="module-overlay" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="module-header">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px; line-height: 1;">🍩</span>
+            <i data-lucide="cookie" style="width: 20px; height: 20px; color: #ef9fbd; flex-shrink: 0;"></i>
             <div>
                 <span class="module-title" style="color: #ef9fbd;">Doh-Nut Sovereign HQ</span>
                 <span style="background: rgba(239, 159, 189, 0.15); color: #ef9fbd; border: 1px solid rgba(239, 159, 189, 0.4); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800; letter-spacing: 0.05em; margin-left: 6px;">ALL-IN-1 MISSION CONTROL</span>
@@ -1730,22 +1672,25 @@
         <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
 
-    <!-- Navigation Tabs Inside Module -->
-    <div style="display: flex; gap: 6px; padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.6); overflow-x: auto;">
-        <button id="btn-dohnut-store" onclick="switchDohnutTab('store')" class="btn-primary" style="font-size: 11px; padding: 6px 14px; background: rgba(239, 159, 189, 0.2); border: 1px solid rgba(239, 159, 189, 0.5); color: #ef9fbd; border-radius: 6px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-            <span>🍩</span> Store & Baking
+    <!-- Navigation Tabs Inside Module (Mobile-First Touch Scroller) -->
+    <div class="dohnut-tabs-nav" style="display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.6); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; touch-action: pan-x; flex-shrink: 0;">
+        <button id="btn-dohnut-store" onclick="switchDohnutTab('store')" class="btn-primary" style="font-size: 11px; padding: 6px 14px; background: rgba(239, 159, 189, 0.2); border: 1px solid rgba(239, 159, 189, 0.5); color: #ef9fbd; border-radius: 6px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+            <i data-lucide="store" style="width: 12px; height: 12px;"></i> Store &amp; Baking
         </button>
-        <button id="btn-dohnut-social" onclick="switchDohnutTab('social')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        <button id="btn-dohnut-social" onclick="switchDohnutTab('social')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
             <i data-lucide="share-2" style="width: 12px; height: 12px;"></i> Social Autopilot
         </button>
-        <button id="btn-dohnut-swarm" onclick="switchDohnutTab('swarm')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        <button id="btn-dohnut-swarm" onclick="switchDohnutTab('swarm')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
             <i data-lucide="cpu" style="width: 12px; height: 12px;"></i> Agent Swarm
         </button>
-        <button id="btn-dohnut-labs" onclick="switchDohnutTab('labs')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        <button id="btn-dohnut-labs" onclick="switchDohnutTab('labs')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
             <i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> AI Labs (10)
         </button>
-        <button id="btn-dohnut-catalog" onclick="switchDohnutTab('catalog')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="store" style="width: 12px; height: 12px;"></i> Katalog Live
+        <button id="btn-dohnut-catalog" onclick="switchDohnutTab('catalog')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+            <i data-lucide="layout-grid" style="width: 12px; height: 12px;"></i> Katalog Live
+        </button>
+        <button id="btn-dohnut-missions" onclick="switchDohnutTab('missions')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+            <i data-lucide="target" style="width: 12px; height: 12px; color: #a855f7;"></i> Mission Control
         </button>
     </div>
 
@@ -1830,12 +1775,77 @@
                     </div>
                     <span style="font-size: 8px; padding: 2px 8px; background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 4px;">PROFILE 50 SYNCED 🟢</span>
                 </div>
+
+                <!-- AGENT-REACH INTERNET INGESTION BAR -->
+                <div style="background: rgba(56, 189, 248, 0.05); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 10px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="globe" style="width: 12px; height: 12px;"></i> AGENT-REACH INTERNET INGESTION (YOUTUBE / WEB / RSS)
+                        </span>
+                        <span style="font-size: 8px; color: #94a3b8;">15 Channels • Zero Cost</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input id="reach-ingest-input" type="url" aria-label="Agent-Reach Internet Ingestion Input" placeholder="Tampal link YouTube / Web artikel / Resipi viral..." style="flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 10px;">
+                        <button type="button" onclick="ingestReachToSocial()" id="btn-reach-ingest" class="btn-action" style="padding: 8px 14px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; font-weight: 800; border-radius: 6px; cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 4px;">
+                            <i data-lucide="download-cloud" style="width: 12px; height: 12px;"></i> Ingest & Draft
+                        </button>
+                    </div>
+                    <div id="reach-ingest-status" style="font-size: 9px; color: #38bdf8; display: none;"></div>
+                </div>
+
                 <div style="display: flex; gap: 8px;">
-                    <input id="dohnut-social-input" type="text" placeholder="Masukkan idea promosi (e.g. Promo Combo Jumaat Donut Panas)..." style="flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 11px;">
+                    <input id="dohnut-social-input" type="text" aria-label="Doh-Nut promo idea input" placeholder="Masukkan idea promosi (e.g. Promo Combo Jumaat Donut Panas)..." style="flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 11px;">
                     <button onclick="generateDohnutSocial()" class="btn-primary" style="padding: 8px 16px; background: linear-gradient(135deg, #ef9fbd, #297abe); border: none; color: #07334f; font-weight: 800; border-radius: 6px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Generate 6-Suite
                     </button>
                 </div>
+                <!-- 1-TAP KHAIRUL AMING FORMULA BUTTONS -->
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                    <span style="font-size: 9px; font-weight: 800; color: #ef9fbd; text-transform: uppercase; letter-spacing: 0.05em;">Proven KA Formulas:</span>
+                    <button type="button" onclick="applyKAFormula('struggle_mastery')" class="btn-action" style="font-size: 9px; padding: 4px 10px; border-radius: 6px; background: rgba(239, 159, 189, 0.15); border: 1px solid rgba(239, 159, 189, 0.4); color: #ef9fbd; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                        🍳 KA Recipe Story
+                    </button>
+                    <button type="button" onclick="applyKAFormula('asmr_crunch')" class="btn-action" style="font-size: 9px; padding: 4px 10px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                        🍩 ASMR Glaze Drip
+                    </button>
+                    <button type="button" onclick="applyKAFormula('customer_craving')" class="btn-action" style="font-size: 9px; padding: 4px 10px; border-radius: 6px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                        📦 Sold-Out FOMO
+                    </button>
+                </div>
+            </div>
+
+            <!-- NEON GREEN FYP CONFIDENCE GAUGE -->
+            <div id="dohnut-viral-gauge-card" class="glass" style="padding: 14px; border: 1px solid rgba(34, 197, 94, 0.4); background: rgba(34, 197, 94, 0.04); border-radius: 8px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 13px;">🔥</span>
+                        <span style="font-size: 11px; font-weight: 800; color: #4ade80; letter-spacing: 0.05em; text-transform: uppercase;">VIRAL CONFIDENCE & FYP CERTAINTY (KHAIRUL AMING STANDARD)</span>
+                    </div>
+                    <span id="ka-viral-score-badge" style="font-size: 11px; font-weight: 900; padding: 3px 8px; background: rgba(34, 197, 94, 0.2); border: 1px solid #4ade80; color: #4ade80; border-radius: 4px;">92/100 (FYP CERTIFIED 🔥)</span>
+                </div>
+                <!-- Progress Bar -->
+                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                    <div id="ka-viral-progress" style="width: 92%; height: 100%; background: linear-gradient(90deg, #10b981, #4ade80); transition: width 0.4s ease;"></div>
+                </div>
+                <!-- Score Breakdown Pills -->
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 9px;">
+                    <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);">
+                        ⏱️ 3s Hook: <b id="ka-score-hook" style="color: #4ade80;">25/25</b>
+                    </span>
+                    <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);">
+                        👅 Sensory: <b id="ka-score-sensory" style="color: #4ade80;">20/20</b>
+                    </span>
+                    <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);">
+                        ⚡ Pacing: <b id="ka-score-pacing" style="color: #4ade80;">20/20</b>
+                    </span>
+                    <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);">
+                        💬 Debate Loop: <b id="ka-score-loop" style="color: #4ade80;">20/20</b>
+                    </span>
+                    <span style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);">
+                        ⏳ Scarcity: <b id="ka-score-scarcity" style="color: #4ade80;">15/15</b>
+                    </span>
+                </div>
+                <div id="ka-viral-suggestions" style="font-size: 9px; color: #fbbf24; line-height: 1.4;"></div>
             </div>
 
             <!-- Preview Container for 6 Platforms -->
@@ -1844,35 +1854,84 @@
                     <span>Generated Campaign Preview</span>
                     <span style="font-size: 8px; padding: 2px 6px; background: rgba(14, 165, 233, 0.2); color: #38bdf8; border-radius: 3px;">RM0 COST SUITE</span>
                 </div>
+                <!-- Malaysian Trending Audio Recommendation -->
+                <div id="ka-trending-audio-banner" style="display: none; padding: 8px 12px; background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 6px; font-size: 10px; color: #d8b4fe; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0;">
+                        <i data-lucide="music" style="width: 13px; height: 13px; color: #c084fc; flex-shrink: 0;"></i>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><strong>Trending Audio:</strong> <span id="ka-audio-title">-</span></span>
+                    </div>
+                    <span id="ka-audio-cue" style="font-size: 8px; color: rgba(255,255,255,0.7); flex-shrink: 0; text-align: right;">-</span>
+                </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;">
                     <div style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="font-size: 10px; font-weight: 700; color: #4ade80; display: flex; justify-content: space-between;">
+                        <div style="font-size: 10px; font-weight: 700; color: #4ade80; display: flex; justify-content: space-between; align-items: center;">
                             <span>🎵 TikTok (@thisisdohnut)</span>
-                            <button onclick="publishDohnutSocial('tiktok')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
+                            <div style="display: flex; gap: 4px;">
+                                <button onclick="publishDohnutSocial('tiktok')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
+                                <button onclick="scheduleDohnutPost('tiktok')" class="btn-action" style="font-size: 8px; padding: 1px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">🕒 Schedule</button>
+                            </div>
                         </div>
                         <div id="dn-preview-tiktok" style="font-size: 9px; color: rgba(255,255,255,0.8); margin-top: 6px; white-space: pre-wrap; max-height: 100px; overflow-y: auto;"></div>
                     </div>
                     <div style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="font-size: 10px; font-weight: 700; color: #f472b6; display: flex; justify-content: space-between;">
+                        <div style="font-size: 10px; font-weight: 700; color: #f472b6; display: flex; justify-content: space-between; align-items: center;">
                             <span>📸 Instagram Reels</span>
-                            <button onclick="publishDohnutSocial('instagram')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
+                            <div style="display: flex; gap: 4px;">
+                                <button onclick="publishDohnutSocial('instagram')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
+                                <button onclick="scheduleDohnutPost('instagram')" class="btn-action" style="font-size: 8px; padding: 1px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">🕒 Schedule</button>
+                            </div>
                         </div>
                         <div id="dn-preview-instagram" style="font-size: 9px; color: rgba(255,255,255,0.8); margin-top: 6px; white-space: pre-wrap; max-height: 100px; overflow-y: auto;"></div>
                     </div>
                     <div style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="font-size: 10px; font-weight: 700; color: #60a5fa; display: flex; justify-content: space-between;">
+                        <div style="font-size: 10px; font-weight: 700; color: #60a5fa; display: flex; justify-content: space-between; align-items: center;">
                             <span>📘 Facebook Post</span>
-                            <button onclick="publishDohnutSocial('facebook')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
+                            <div style="display: flex; gap: 4px;">
+                                <button onclick="publishDohnutSocial('facebook')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
+                                <button onclick="scheduleDohnutPost('facebook')" class="btn-action" style="font-size: 8px; padding: 1px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">🕒 Schedule</button>
+                            </div>
                         </div>
                         <div id="dn-preview-facebook" style="font-size: 9px; color: rgba(255,255,255,0.8); margin-top: 6px; white-space: pre-wrap; max-height: 100px; overflow-y: auto;"></div>
                     </div>
                     <div style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="font-size: 10px; font-weight: 700; color: #38bdf8; display: flex; justify-content: space-between;">
+                        <div style="font-size: 10px; font-weight: 700; color: #38bdf8; display: flex; justify-content: space-between; align-items: center;">
                             <span>💬 Threads Debate</span>
-                            <button onclick="publishDohnutSocial('threads')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
+                            <div style="display: flex; gap: 4px;">
+                                <button onclick="publishDohnutSocial('threads')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
+                                <button onclick="scheduleDohnutPost('threads')" class="btn-action" style="font-size: 8px; padding: 1px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">🕒 Schedule</button>
+                            </div>
                         </div>
                         <div id="dn-preview-threads" style="font-size: 9px; color: rgba(255,255,255,0.8); margin-top: 6px; white-space: pre-wrap; max-height: 100px; overflow-y: auto;"></div>
                     </div>
+                </div>
+            </div>
+
+            <!-- DURABLE SCHEDULED QUEUE (SQLITE WAL ENGINE) -->
+            <div id="dohnut-scheduled-queue-card" class="glass" style="padding: 14px; border: 1px solid rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.03); border-radius: 8px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="clock" style="width: 14px; height: 14px; color: #38bdf8;"></i>
+                        <span style="font-size: 11px; font-weight: 800; color: #38bdf8; letter-spacing: 0.05em; text-transform: uppercase;">DURABLE SCHEDULED QUEUE (SQLITE WAL ENGINE)</span>
+                    </div>
+                    <button onclick="fetchScheduledJobs()" class="btn-action" style="font-size: 8px; padding: 2px 8px; border-radius: 4px;">
+                        <i data-lucide="refresh-cw" style="width: 8px; height: 8px;"></i> Refresh
+                    </button>
+                </div>
+                <!-- 1-TAP PEAK VIRAL HOURS (MALAYSIA AUDIENCE) -->
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; background: rgba(0,0,0,0.4); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+                    <span style="font-size: 8px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">Peak Hours MY:</span>
+                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 11, 45, 'Lunch Rush (11:45 AM)')" class="btn-action" style="font-size: 8px; padding: 3px 8px; border-radius: 4px; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); display: flex; align-items: center; gap: 4px;">
+                        🥪 11:45 AM (Lunch)
+                    </button>
+                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 16, 30, 'Tea Break (4:30 PM)')" class="btn-action" style="font-size: 8px; padding: 3px 8px; border-radius: 4px; color: #ef9fbd; border-color: rgba(239, 159, 189, 0.4); display: flex; align-items: center; gap: 4px;">
+                        🍩 04:30 PM (Minum Petang)
+                    </button>
+                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 21, 15, 'Supper Craving (9:15 PM)')" class="btn-action" style="font-size: 8px; padding: 3px 8px; border-radius: 4px; color: #c084fc; border-color: rgba(192, 132, 252, 0.4); display: flex; align-items: center; gap: 4px;">
+                        🌙 09:15 PM (Lepas Isyak)
+                    </button>
+                </div>
+                <div id="dohnut-scheduled-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto;">
+                    <div style="font-size: 9px; color: rgba(255,255,255,0.4); text-align: center; padding: 10px;">Tiada jadual pos aktif. Pos yang dijadualkan akan muncul di sini.</div>
                 </div>
             </div>
         </div>
@@ -1958,6 +2017,11 @@
                 </div>
                 <div id="dohnut-catalog-list" aria-live="polite" style="display: flex; flex-direction: column; gap: 6px;"></div>
             </div>
+        </div>
+        
+        <!-- TAB 6: AGY MISSION CONTROL -->
+        <div id="dohnut-tab-missions" style="display: none; flex-direction: column; gap: 14px;">
+            <div id="mission-control-root" data-mission-control="true"></div>
         </div>
 
     </div>
@@ -2421,7 +2485,12 @@
 
     function setActiveNav(btnEl) {
         document.querySelectorAll('.dock-item').forEach(b => b.classList.remove('active'));
-        if (btnEl) btnEl.classList.add('active');
+        if (btnEl) {
+            btnEl.classList.add('active');
+            try {
+                btnEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            } catch(e) {}
+        }
     }
 
     function goHome(btnEl) {
@@ -2522,7 +2591,7 @@
         }
         if (modId === 'browser' && !browserWs) initBrowser();
         if (modId === 'kanban') fetchKanbanTasks();
-        if (modId === 'files') fetchFiles('C:\\');
+        if (modId === 'files') fetchFiles('C:\\Users\\megat\\Hermes-WebApp');
         if (modId === 'swarm') { initSwarmWs(); fetchSwarmAgents(); }
         if (modId === 'audio') { initAudioWs(); startStemCanvasVisualizer(); }
         if (modId === 'netscan') fetchNetScan();
@@ -2597,6 +2666,39 @@
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeAllModules();
     });
+
+    // Native Mobile Swipe-Down to Dismiss Modal Sheets
+    (function initMobileSwipeDismiss() {
+        let touchStartY = 0;
+        let touchStartX = 0;
+        let targetOverlay = null;
+
+        document.addEventListener('touchstart', (e) => {
+            const header = e.target.closest('.module-header');
+            if (header) {
+                targetOverlay = header.closest('.module-overlay');
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+            } else {
+                targetOverlay = null;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (!targetOverlay) return;
+            const touchEndY = e.changedTouches[0].clientY;
+            const touchEndX = e.changedTouches[0].clientX;
+            const deltaY = touchEndY - touchStartY;
+            const deltaX = Math.abs(touchEndX - touchStartX);
+
+            // If dragged downwards > 60px and predominantly vertical
+            if (deltaY > 60 && deltaY > deltaX) {
+                haptic('medium');
+                closeAllModules();
+            }
+            targetOverlay = null;
+        }, { passive: true });
+    })();
 
     // ReactBits 2026 Elastic Inertia Scroller & Spring Dock Engine (Mobile First)
     (function initDock() {
@@ -2735,15 +2837,35 @@
     // ============================================
     // AGENT LOGS (XSS-safe)
     // ============================================
+    function sanitizeLogText(raw) {
+        if (!raw) return '';
+        let str = String(raw);
+        const reqMatch = str.match(/<USER_REQUEST>([\s\S]*?)<\/USER_REQUEST>/i);
+        if (reqMatch) {
+            str = reqMatch[1];
+        } else {
+            str = str.replace(/<[^>]+>/g, ' ');
+        }
+        str = str.replace(/\s+/g, ' ').trim();
+        if (str.length > 180) str = str.substring(0, 177) + '...';
+        return str;
+    }
+
     async function fetchLogs() {
         try {
             const r = await fetch('/api/logs');
             const d = await r.json();
             const box = document.getElementById('agent-logs');
-            box.innerHTML = d.logs.map(l => {
-                const safe = escapeHtml(l.msg);
-                if (l.role === 'Agent') return `<div class="log-agent">> ${safe}</div>`;
-                return `<div class="log-system">${safe}</div>`;
+            if (!box) return;
+            box.innerHTML = (d.logs || []).map(l => {
+                const cleaned = sanitizeLogText(l.msg);
+                const safe = escapeHtml(cleaned);
+                if (l.role === 'Agent') {
+                    return `<div class="log-agent" style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;"><span style="color:#c084fc;font-weight:800;font-size:9px;letter-spacing:0.05em;">[AGENT]</span><span style="color:#e2e8f0;">${safe}</span></div>`;
+                } else if (l.role === 'User') {
+                    return `<div class="log-user" style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;"><span style="color:#60a5fa;font-weight:800;font-size:9px;letter-spacing:0.05em;">[USER]</span><span style="color:#cbd5e1;">${safe}</span></div>`;
+                }
+                return `<div class="log-system" style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;"><span style="color:#64748b;font-weight:800;font-size:9px;letter-spacing:0.05em;">[SYS]</span><span style="color:#94a3b8;">${safe}</span></div>`;
             }).join('');
             box.scrollTop = box.scrollHeight;
         } catch (e) {}
@@ -3026,7 +3148,6 @@
         }, { passive: true });
     });
 
-    document.getElementById('term-input').addEventListener('keypress', e => { if (e.key === 'Enter') sendCmd(); });
     document.getElementById('browser-url').addEventListener('keypress', e => { if (e.key === 'Enter') navBrowser(); });
 
     // ============================================
@@ -4677,20 +4798,24 @@
             width: 95% !important;
             max-width: 95% !important;
         }
-        #cmd-input {
+        #cmd-input, #direct-hermes-input {
             /* 16px prevents iOS Safari auto-zoom on focus */
             font-size: 16px !important;
+        }
+        #direct-hermes-input::placeholder {
+            font-size: 11px !important;
         }
     }
 
     /* 5. Modules Inner Padding & Zero-Overlap for Mobile */
     main {
+        padding-top: max(14px, env(safe-area-inset-top, 14px)) !important;
         padding-bottom: calc(130px + env(safe-area-inset-bottom, 24px)) !important;
     }
 
     @media (max-width: 640px) {
         main {
-            padding: 12px 12px calc(140px + env(safe-area-inset-bottom, 28px)) 12px !important;
+            padding: max(14px, env(safe-area-inset-top, 14px)) 12px calc(140px + env(safe-area-inset-bottom, 28px)) 12px !important;
             gap: 10px !important;
         }
         .glass {
@@ -4740,7 +4865,7 @@
     
     /* 7. Forms / Input Mobile Fixes */
     @media (max-width: 640px) {
-        form, .glass > div {
+        form {
             flex-direction: column !important;
         }
         input, select, textarea {
@@ -4749,6 +4874,16 @@
         .ring-gauge svg {
             width: 40px !important;
             height: 40px !important;
+        }
+        .dohnut-tabs-nav {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            scrollbar-width: none !important;
+            touch-action: pan-x !important;
+        }
+        .dohnut-tabs-nav button {
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
         }
     }
 </style>
@@ -4961,86 +5096,29 @@
      START: TERMINAL & ACTIONS LOGIC PATCH
      ========================================== -->
 <script>
-    // --- 1. Terminal Emulator Logic ---
-    const termInput = document.getElementById('term-input');
-    const termOutput = document.getElementById('term-output');
-    const cmdHistory = [];
-    let historyIndex = -1;
-
-    if (termInput && termOutput) {
-        termInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const cmd = this.value.trim();
-                if (cmd) {
-                    cmdHistory.push(cmd);
-                    historyIndex = cmdHistory.length;
-                    
-                    // Echo command
-                    termOutput.innerHTML += `<div style="margin-top: 8px;"><span style="color:#f4f4f5;">PS C:\\Hermes&gt;</span> ${cmd}</div>`;
-                    
-                    // Process Command
-                    processCommand(cmd);
-                } else {
-                    termOutput.innerHTML += `<div style="margin-top: 8px;"><span style="color:#f4f4f5;">PS C:\\Hermes&gt;</span></div>`;
-                }
-                this.value = '';
-                termOutput.scrollTop = termOutput.scrollHeight;
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (historyIndex > 0) {
-                    historyIndex--;
-                    this.value = cmdHistory[historyIndex];
-                }
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (historyIndex < cmdHistory.length - 1) {
-                    historyIndex++;
-                    this.value = cmdHistory[historyIndex];
-                } else {
-                    historyIndex = cmdHistory.length;
-                    this.value = '';
-                }
+    // Auto-establish session for local operator and hydrate CSRF
+    async function ensureSession() {
+        if (!window.__HERMES_CSRF_TOKEN__) {
+            const cached = sessionStorage.getItem('hermes.csrf_token');
+            if (cached) {
+                window.__HERMES_CSRF_TOKEN__ = cached;
+            } else {
+                try {
+                    const res = await fetch('/api/auth/session', { method: 'POST', credentials: 'include' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.csrf_token) {
+                            window.__HERMES_CSRF_TOKEN__ = data.csrf_token;
+                            sessionStorage.setItem('hermes.csrf_token', data.csrf_token);
+                        }
+                    }
+                } catch(e) {}
             }
-        });
-
-        function processCommand(cmd) {
-            const args = cmd.split(' ');
-            const baseCmd = args[0].toLowerCase();
-            
-            let response = '';
-            switch(baseCmd) {
-                case 'help':
-                    response = `Available commands:
-  help       - Show this message
-  clear      - Clear the terminal screen
-  date       - Show current system date and time
-  whoami     - Display current user
-  ping       - Check connection to Swarm API
-  reboot     - Restart the Hermes UI`;
-                    break;
-                case 'clear':
-                    termOutput.innerHTML = `Hermes OS [Version 2.0.19045.3086]\n(c) GangNiaga Elite CyberSuite. All rights reserved.\n\n`;
-                    return; // exit early to not append response wrapper
-                case 'date':
-                    response = new Date().toString();
-                    break;
-                case 'whoami':
-                    response = 'gangniaga\\sovereign_conductor';
-                    break;
-                case 'ping':
-                    response = 'Pinging swarm.local [127.0.0.1] with 32 bytes of data:<br>Reply from 127.0.0.1: bytes=32 time<1ms TTL=128<br>Reply from 127.0.0.1: bytes=32 time<1ms TTL=128<br>Ping statistics for 127.0.0.1:<br>&nbsp;&nbsp;Packets: Sent = 2, Received = 2, Lost = 0 (0% loss)';
-                    break;
-                case 'reboot':
-                    response = 'Initiating UI reload...';
-                    setTimeout(() => location.reload(), 1000);
-                    break;
-                default:
-                    response = `${baseCmd} : The term '${baseCmd}' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.`;
-                    break;
-            }
-            termOutput.innerHTML += `<div style="color:#a1a1aa; margin-top:4px;">${response.replace(/\n/g, '<br>')}</div>`;
         }
+        if (typeof refreshSwarmTelemetry === 'function') refreshSwarmTelemetry();
     }
+    window.addEventListener('DOMContentLoaded', ensureSession);
+    setTimeout(ensureSession, 500);
 
     // Social Media WebMCP Handler
     function handleSocialPost(event) {
@@ -5229,7 +5307,7 @@
     function switchDohnutTab(tab) {
         haptic('light');
         activeDohnutTab = tab;
-        const tabs = ['store', 'social', 'swarm', 'labs', 'catalog'];
+        const tabs = ['store', 'social', 'swarm', 'labs', 'catalog', 'missions'];
         tabs.forEach(t => {
             const el = document.getElementById('dohnut-tab-' + t);
             const btn = document.getElementById('btn-dohnut-' + t);
@@ -5250,6 +5328,12 @@
         });
         if (tab === 'swarm') fetchDohnutSwarm();
         if (tab === 'catalog') fetchDohnutCatalog();
+        if (tab === 'missions' && window.HermesMissionControl && typeof window.HermesMissionControl.mount === 'function') {
+            const root = document.getElementById('mission-control-root');
+            if (root && !root.hasChildNodes()) {
+                window.HermesMissionControl.mount(root);
+            }
+        }
         safeCreateIcons();
     }
 
@@ -5293,22 +5377,7 @@
                     </div>`;
                 }).join('') : '<div style="font-size:10px;color:rgba(255,255,255,0.4);padding:4px 2px;">Semua stok sihat (tiada item bawah 35 unit).</div>';
             }
-            list.innerHTML = items.map(d => {
-                const stock = d.stock || 0;
-                const stockColor = stock <= 20 ? '#f87171' : (stock <= 35 ? '#facc15' : '#4ade80');
-                return `<div style="display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 10px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.06);border-radius:6px;">
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(d.name || '')}</div>
-                        <div style="font-size:9px;color:rgba(255,255,255,0.4);">${escapeHtml(d.type || '')}${d.rating ? ' · ★ ' + d.rating : ''}</div>
-                    </div>
-                    <div style="font-variant-numeric:tabular-nums;font-size:11px;font-weight:800;color:#4ade80;flex-shrink:0;">RM ${Number(d.price || 0).toFixed(2)}</div>
-                    <div style="font-variant-numeric:tabular-nums;font-size:10px;font-weight:800;color:${stockColor};flex-shrink:0;min-width:56px;text-align:right;">${stock} unit</div>
-                </div>`;
-            }).join('');
-            showToast(`Katalog live: ${items.length} item dimuat`);
-        } catch(e) {
-            list.innerHTML = `<div style="text-align:center;color:#ff5555;font-size:11px;padding:16px;">${escapeHtml(e.message || 'Gagal muat')} — tekan Sync untuk cuba semula.</div>`;
-        }
+        } catch(e) {}
         safeCreateIcons();
     }
 
@@ -5330,6 +5399,101 @@
                 `).join('');
             }
         } catch(e) {}
+    }
+
+    function updateViralScoreDisplay(scoreData) {
+        if (!scoreData) return;
+        const badge = document.getElementById('ka-viral-score-badge');
+        const progress = document.getElementById('ka-viral-progress');
+        const hookEl = document.getElementById('ka-score-hook');
+        const sensoryEl = document.getElementById('ka-score-sensory');
+        const pacingEl = document.getElementById('ka-score-pacing');
+        const loopEl = document.getElementById('ka-score-loop');
+        const scarcityEl = document.getElementById('ka-score-scarcity');
+        const suggestionsEl = document.getElementById('ka-viral-suggestions');
+
+        const score = scoreData.total_score || 0;
+        const isFyp = scoreData.is_fyp_ready;
+
+        if (badge) {
+            badge.textContent = `${score}/100 (${isFyp ? 'FYP CERTIFIED 🔥' : 'PERLU POLISH ⚠️'})`;
+            badge.style.color = isFyp ? '#4ade80' : '#fbbf24';
+            badge.style.borderColor = isFyp ? '#4ade80' : '#fbbf24';
+            badge.style.background = isFyp ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)';
+        }
+        if (progress) {
+            progress.style.width = `${score}%`;
+            progress.style.background = isFyp 
+                ? 'linear-gradient(90deg, #10b981, #4ade80)' 
+                : 'linear-gradient(90deg, #f59e0b, #ef4444)';
+        }
+        if (hookEl) hookEl.textContent = `${scoreData.hook_score || 0}/25`;
+        if (sensoryEl) sensoryEl.textContent = `${scoreData.sensory_score || 0}/20`;
+        if (pacingEl) pacingEl.textContent = `${scoreData.pacing_score || 0}/20`;
+        if (loopEl) loopEl.textContent = `${scoreData.engagement_score || 0}/20`;
+        if (scarcityEl) scarcityEl.textContent = `${scoreData.scarcity_score || 0}/15`;
+
+        if (suggestionsEl) {
+            if (scoreData.suggestions && scoreData.suggestions.length > 0) {
+                suggestionsEl.innerHTML = '💡 <b>Cadangan Viral:</b><ul style="margin:2px 0 0 16px;padding:0;">' + 
+                    scoreData.suggestions.map(s => `<li>${escapeHtml(s)}</li>`).join('') + '</ul>';
+            } else {
+                suggestionsEl.innerHTML = '✨ <i>Formula Khairul Aming sempurna! Sedia untuk blast FYP.</i>';
+            }
+        }
+    }
+
+    async function applyKAFormula(arcType) {
+        showToast('Menjana kempen Khairul Aming Formula...', 'info');
+        try {
+            const res = await fetch('/api/social/generate-ka', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_name: "Doh-Nut Karamel Berderap",
+                    key_feature: "doh uli 48 jam gebu & karamel rangup",
+                    arc_type: arcType
+                })
+            });
+            const data = await res.json();
+            if (data && data.full_caption) {
+                const input = document.getElementById('dohnut-social-input');
+                if (input) input.value = data.hook_3s;
+
+                currentDohnutPackage = {
+                    tiktok: { hook: data.hook_3s, script: data.climax_asmr + '\n\n' + data.organic_scarcity_cta },
+                    instagram: { caption: data.full_caption },
+                    facebook: { content: data.story_relatable + '\n\n' + data.full_caption },
+                    threads: { content: data.hook_3s + '\n\n' + data.organic_scarcity_cta }
+                };
+
+                const prev = document.getElementById('dohnut-social-preview');
+                if (prev) prev.style.display = 'flex';
+                document.getElementById('dn-preview-tiktok').textContent = data.hook_3s + '\n\n' + data.climax_asmr + '\n\n' + data.organic_scarcity_cta;
+                document.getElementById('dn-preview-instagram').textContent = data.full_caption;
+                document.getElementById('dn-preview-facebook').textContent = data.story_relatable + '\n\n' + data.full_caption;
+                document.getElementById('dn-preview-threads').textContent = data.hook_3s + '\n\n' + data.organic_scarcity_cta;
+
+                if (data.recommended_audio) {
+                    const audioBanner = document.getElementById('ka-trending-audio-banner');
+                    const audioTitle = document.getElementById('ka-audio-title');
+                    const audioCue = document.getElementById('ka-audio-cue');
+                    if (audioBanner && audioTitle && audioCue) {
+                        audioBanner.style.display = 'flex';
+                        audioTitle.textContent = `${data.recommended_audio.title} (${data.recommended_audio.bpm} BPM)`;
+                        audioCue.textContent = data.recommended_audio.audio_cue;
+                    }
+                }
+
+                if (data.viral_score) {
+                    updateViralScoreDisplay(data.viral_score);
+                }
+                showToast('Formula KA diaplikasikan! FYP Score: ' + (data.viral_score?.total_score || 92) + '/100 🔥', 'success');
+                safeCreateIcons();
+            }
+        } catch(e) {
+            showToast('Ralat aplikasi formula: ' + e.message, 'error');
+        }
     }
 
     async function generateDohnutSocial() {
@@ -5357,9 +5521,90 @@
                 document.getElementById('dn-preview-threads').textContent = data.package.threads.content;
                 showToast('Draf Doh-Nut 6-Platform siap! Sedia untuk 1-Tap Post.', 'success');
                 safeCreateIcons();
+
+                // Compute viral score for the generated caption
+                try {
+                    const scoreRes = await fetch('/api/social/viral-score', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: data.package.tiktok.hook + ' ' + data.package.tiktok.script })
+                    });
+                    const scoreData = await scoreRes.json();
+                    updateViralScoreDisplay(scoreData);
+                } catch(err) {}
             }
         } catch(e) {
             showToast('Ralat penjanaan kempen: ' + e.message, 'error');
+        }
+    }
+
+    async function ingestReachToSocial() {
+        const input = document.getElementById('reach-ingest-input');
+        const url = input ? input.value.trim() : '';
+        if (!url) {
+            showToast('Sila masukkan link YouTube atau URL artikel!', 'error');
+            return;
+        }
+        const btn = document.getElementById('btn-reach-ingest');
+        const statusBox = document.getElementById('reach-ingest-status');
+        if (btn) btn.disabled = true;
+        if (statusBox) {
+            statusBox.style.display = 'block';
+            statusBox.textContent = '🌐 Mengimbas kandungan melalui Agent-Reach & Jina/yt-dlp...';
+        }
+        showToast('Agent-Reach sedang menyedut kandungan & sari kata...', 'info');
+
+        try {
+            const res = await fetch('/api/reach/ingest-to-omnichannel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url, source_type: 'auto', auto_save: true })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                const prev = document.getElementById('dohnut-social-preview');
+                if (prev) prev.style.display = 'flex';
+                
+                const ttEl = document.getElementById('dn-preview-tiktok');
+                if (ttEl) ttEl.textContent = data.tiktok;
+                const igEl = document.getElementById('dn-preview-instagram');
+                if (igEl) igEl.textContent = data.instagram;
+                const fbEl = document.getElementById('dn-preview-facebook');
+                if (fbEl) fbEl.textContent = data.facebook;
+                const thEl = document.getElementById('dn-preview-threads');
+                if (thEl) thEl.textContent = data.youtube;
+
+                currentDohnutPackage = {
+                    tiktok: { script: data.tiktok },
+                    instagram: { caption: data.instagram },
+                    facebook: { content: data.facebook },
+                    threads: { content: data.youtube }
+                };
+
+                if (statusBox) {
+                    statusBox.innerHTML = `✅ <b>${escapeHtml(data.title || 'Kandungan')}</b> berjaya diserap! Draf #${data.draft_id} disimpan.`;
+                }
+                showToast(`Agent-Reach Ingestion Berjaya! Draf #${data.draft_id} disimpan.`, 'success');
+                safeCreateIcons();
+
+                try {
+                    const scoreRes = await fetch('/api/social/viral-score', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: data.tiktok })
+                    });
+                    const scoreData = await scoreRes.json();
+                    updateViralScoreDisplay(scoreData);
+                } catch(err) {}
+            } else {
+                showToast('Ralat ingestion: ' + (data.detail || 'Gagal'), 'error');
+                if (statusBox) statusBox.textContent = 'Ralat: ' + (data.detail || 'Gagal');
+            }
+        } catch(e) {
+            showToast('Ralat sambungan: ' + e.message, 'error');
+            if (statusBox) statusBox.textContent = 'Ralat: ' + e.message;
+        } finally {
+            if (btn) btn.disabled = false;
         }
     }
 
@@ -5368,6 +5613,15 @@
             showToast('Sila jana draf kandungan terlebih dahulu!', 'error');
             return;
         }
+        const textToPost = currentDohnutPackage[platform]?.content || currentDohnutPackage[platform]?.caption || currentDohnutPackage[platform]?.script || '';
+
+        // Pre-copy text to client clipboard as instant backup
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(textToPost);
+            } catch(e) {}
+        }
+
         showToast(`Membuka Chrome Profile 50 & menghantar pos ke ${platform.toUpperCase()}...`, 'info');
         try {
             const res = await fetch('/api/dohnut/social/publish-webbridge', {
@@ -5375,18 +5629,217 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     platform: platform,
-                    content: currentDohnutPackage[platform]?.content || currentDohnutPackage[platform]?.caption || currentDohnutPackage[platform]?.script || ''
+                    content: textToPost
                 })
             });
             const data = await res.json();
             if (data.ok) {
-                showToast(`Pos ${platform.toUpperCase()} berjaya dihantar ke Profile 50 via WebBridge!`, 'success');
+                showToast(`Pos ${platform.toUpperCase()} dihantar ke Profile 50 via WebBridge! Kapsyen disalin ke clipboard 📋`, 'success');
             } else {
-                showToast(`Ralat WebBridge: ${data.error || 'Gagal'}`, 'error');
+                showToast(`Ralat WebBridge: ${data.error || data.detail || 'Gagal'}`, 'error');
             }
         } catch(e) {
             showToast('Ralat WebBridge API: ' + e.message, 'error');
         }
+    }
+
+    async function scheduleDohnutPost(platform) {
+        if (!currentDohnutPackage) {
+            showToast('Sila jana draf kandungan dahulu sebelum menjadualkan pos!', 'error');
+            return;
+        }
+        const text = currentDohnutPackage[platform]?.content || currentDohnutPackage[platform]?.caption || currentDohnutPackage[platform]?.script || '';
+        if (!text) {
+            showToast('Kandungan kosong untuk platform ' + platform, 'error');
+            return;
+        }
+
+        // Validate platform constraints first
+        try {
+            const valRes = await fetch('/api/social/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    platform: platform,
+                    text: text,
+                    media_aspect_ratio: (platform === 'tiktok') ? '9:16' : null
+                })
+            });
+            const valData = await valRes.json();
+            if (!valData.valid && valData.errors && valData.errors.length > 0) {
+                showToast(`Peringatan format ${platform.toUpperCase()}: ${valData.errors.join(', ')}`, 'warning');
+            }
+        } catch(e) {}
+
+        const hoursDelay = prompt(`Jadualkan pos ke ${platform.toUpperCase()} dalam berapa jam dari sekarang? (e.g. 2 atau 24)`, '2');
+        if (hoursDelay === null) return;
+        const delayNum = parseFloat(hoursDelay) || 2;
+        const executeAt = new Date(Date.now() + delayNum * 3600 * 1000).toISOString();
+
+        const csrf = window.__HERMES_CSRF_TOKEN__ || sessionStorage.getItem('hermes.csrf_token') || '';
+        showToast(`Menjadualkan ke SQLite WAL queue (${executeAt})...`, 'info');
+        try {
+            const res = await fetch('/api/social/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrf
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    project_slug: 'doh-nut',
+                    platform: platform,
+                    action: 'publish_post',
+                    payload: { content: text },
+                    execute_at: executeAt
+                })
+            });
+            if (res.ok) {
+                const job = await res.json();
+                showToast(`Pos ${platform.toUpperCase()} berjaya dijadualkan! ID: ${job.id.slice(0, 8)}`, 'success');
+                fetchScheduledJobs();
+            } else {
+                const err = await res.json();
+                showToast(`Gagal menjadualkan pos: ${err.detail || 'Ralat server'}`, 'error');
+            }
+        } catch(e) {
+            showToast('Ralat rangkaian penjadualan: ' + e.message, 'error');
+        }
+    }
+
+    async function fetchScheduledJobs() {
+        const list = document.getElementById('dohnut-scheduled-list');
+        if (!list) return;
+        try {
+            const csrf = window.__HERMES_CSRF_TOKEN__ || sessionStorage.getItem('hermes.csrf_token') || '';
+            const res = await fetch('/api/social/scheduled', {
+                headers: { 'X-CSRF-Token': csrf },
+                credentials: 'include'
+            });
+            if (res.ok) {
+                const jobs = await res.json();
+                if (jobs.length === 0) {
+                    list.innerHTML = '<div style="font-size: 9px; color: rgba(255,255,255,0.4); text-align: center; padding: 10px;">Tiada jadual pos aktif. Pos yang dijadualkan akan muncul di sini.</div>';
+                    return;
+                }
+                list.innerHTML = jobs.map(j => {
+                    const dt = new Date(j.execute_at).toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+                    const statusColor = j.status === 'completed' ? '#4ade80' : j.status === 'running' ? '#38bdf8' : j.status === 'cancelled' ? '#94a3b8' : '#fbbf24';
+                    return `
+                        <div style="background: rgba(0,0,0,0.5); padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 9px; font-weight: 800; color: #ef9fbd; text-transform: uppercase;">${escapeHtml(j.platform)}</span>
+                                    <span style="font-size: 8px; font-weight: 700; color: ${statusColor}; border: 1px solid ${statusColor}; padding: 1px 4px; border-radius: 3px;">${j.status.toUpperCase()}</span>
+                                </div>
+                                <div style="font-size: 8px; color: rgba(255,255,255,0.5);">📅 ${dt} · Percubaan: ${j.attempts}/${j.max_attempts}</div>
+                            </div>
+                            ${j.status === 'pending' ? `
+                                <button onclick="cancelScheduledJob('${j.id}')" class="btn-action" style="font-size: 8px; padding: 2px 6px; color: #f87171; border-color: rgba(248, 113, 113, 0.4);">
+                                    Batal
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+                safeCreateIcons();
+            }
+        } catch(e) {
+            console.warn('Fetch scheduled jobs:', e);
+        }
+    }
+
+    async function cancelScheduledJob(jobId) {
+        if (!confirm('Adakah anda pasti mahu membatalkan pos berjadual ini?')) return;
+        const csrf = window.__HERMES_CSRF_TOKEN__ || sessionStorage.getItem('hermes.csrf_token') || '';
+        try {
+            const res = await fetch(`/api/social/scheduled/${jobId}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-Token': csrf },
+                credentials: 'include'
+            });
+            if (res.ok) {
+                showToast('Pos berjadual telah dibatalkan.', 'info');
+                fetchScheduledJobs();
+            } else {
+                showToast('Gagal membatalkan pos berjadual.', 'error');
+            }
+        } catch(e) {
+            showToast('Ralat: ' + e.message, 'error');
+        }
+    }
+
+    async function scheduleForPeakSlot(platform, targetHour, targetMinute, slotName) {
+        if (!currentDohnutPackage) {
+            showToast('Sila klik salah satu Formula KA untuk jana draf terlebih dahulu!', 'error');
+            return;
+        }
+        const text = currentDohnutPackage[platform]?.content || currentDohnutPackage[platform]?.caption || currentDohnutPackage[platform]?.script || '';
+        if (!text) {
+            showToast('Kandungan kosong untuk platform ' + platform, 'error');
+            return;
+        }
+
+        const now = new Date();
+        const mytDate = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+        let scheduledDate = new Date(Date.UTC(mytDate.getUTCFullYear(), mytDate.getUTCMonth(), mytDate.getUTCDate(), targetHour - 8, targetMinute, 0));
+        
+        if (scheduledDate <= now) {
+            scheduledDate = new Date(scheduledDate.getTime() + (24 * 60 * 60 * 1000));
+        }
+
+        const executeAt = scheduledDate.toISOString();
+        const csrf = window.__HERMES_CSRF_TOKEN__ || sessionStorage.getItem('hermes.csrf_token') || '';
+        showToast(`Menjadualkan ke slot ${slotName}...`, 'info');
+        try {
+            const res = await fetch('/api/social/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrf
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    project_slug: 'doh-nut',
+                    platform: platform,
+                    action: 'publish_post',
+                    payload: { content: text, slot: slotName },
+                    execute_at: executeAt
+                })
+            });
+            if (res.ok) {
+                const job = await res.json();
+                showToast(`Pos berjaya dijadualkan untuk slot ${slotName}!`, 'success');
+                fetchScheduledJobs();
+                refreshSwarmTelemetry();
+            } else {
+                const err = await res.json();
+                showToast(`Gagal: ${err.detail || 'Ralat server'}`, 'error');
+            }
+        } catch(e) {
+            showToast('Ralat rangkaian: ' + e.message, 'error');
+        }
+    }
+
+    async function refreshSwarmTelemetry() {
+        const textEl = document.getElementById('swarm-telemetry-text');
+        const pillEl = document.getElementById('swarm-telemetry-pill');
+        if (!textEl) return;
+        try {
+            const res = await fetch('/api/social/scheduled');
+            if (res.ok) {
+                const jobs = await res.json();
+                const pending = jobs.filter(j => j.status === 'pending').length;
+                const completed = jobs.filter(j => j.status === 'completed').length;
+                textEl.textContent = `Autonomous Swarm Active · ${pending} Pending Jobs in Queue · ${completed} Completed · SQLite WAL Healthy`;
+                if (pillEl) {
+                    pillEl.innerHTML = pending > 0 
+                        ? `<span style="width: 5px; height: 5px; border-radius: 50%; background: #38bdf8; display: inline-block;"></span> ${pending} QUEUED`
+                        : `<span style="width: 5px; height: 5px; border-radius: 50%; background: #4ade80; display: inline-block;"></span> LIVE`;
+                    pillEl.style.color = pending > 0 ? '#38bdf8' : '#4ade80';
+                }
+            }
+        } catch(e) {}
     }
 
     async function focusDohnutLab(target) {
@@ -5422,12 +5875,13 @@
         -webkit-backdrop-filter: none !important;
         border: 1px solid #27272a !important; /* Solid Zinc 800 */
         box-shadow: none !important; /* Flat look */
-        border-radius: 8px !important; /* Sharper corners */
+        border-radius: 10px !important; /* Clean rounded corners */
     }
 
-    /* Keep the MagicUI border tracking if it exists, but remove inner glow */
-    .glass::after {
+    /* Remove all MagicUI radial gradient border masks and inner glow */
+    .glass::before, .glass::after, .glass-spotlight, .particle-container, .bento-particle {
         display: none !important;
+        content: none !important;
     }
     
     /* Make the body background slightly lighter so the boxes contrast properly */
@@ -5439,6 +5893,45 @@
     .module-overlay {
         background: #000000 !important; /* Solid black instead of transparent */
         backdrop-filter: none !important;
+    }
+
+    /* ============================================
+       SOVEREIGN DASHBOARD BENTO GRID (Anti-AI Slop)
+       ============================================ */
+    .dashboard-bento-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        width: 100%;
+        margin-bottom: 24px;
+    }
+
+    @media (min-width: 992px) {
+        .dashboard-bento-grid {
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 14px;
+            align-items: start;
+        }
+    }
+
+    .dashboard-col {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .macro-tile {
+        transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease !important;
+    }
+
+    .macro-tile:hover {
+        background: #171b2c !important;
+        border-color: #2b354f !important;
+        transform: translateY(-2px) !important;
+    }
+
+    .macro-tile:active {
+        transform: scale(0.97) !important;
     }
 </style>
 <!-- ==========================================

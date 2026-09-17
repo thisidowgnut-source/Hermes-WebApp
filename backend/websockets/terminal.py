@@ -58,7 +58,8 @@ async def terminal_ws(websocket: WebSocket):
                 elif data == "\x0c":
                     process.stdin.write(b"\x0c")  # Ctrl+L (clear)
                 else:
-                    process.stdin.write(data.encode("utf-8"))
+                    normalized = data.replace("\r\n", "\n").replace("\r", "\n").replace("\n", "\r\n")
+                    process.stdin.write(normalized.encode("utf-8"))
                 await process.stdin.drain()
     except (WebSocketDisconnect, asyncio.CancelledError, Exception):
         pass

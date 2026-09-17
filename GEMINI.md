@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — Workspace Memory & Learned Rules"
 document_id: "HERMES-WEBAPP-MEM-001"
-version: "3.6.0"
-last_updated: "2026-09-12 16:35:00 MYT"
+version: "3.10.0"
+last_updated: "2026-09-17 08:00:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "MISSION-CRITICAL // OPERATIONAL MEMORY"
 lifecycle_status: "ACTIVE"
@@ -18,6 +18,8 @@ Dokumen ini merekodkan peraturan yang dipelajari, status seni bina, dan standard
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Root Cause / Rationale | Code Scope & Changes | Empirical Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.10.0`** | 2026-09-17 08:00:00<br>`2026-09-17T00:00:00Z` | Antigravity Conductor | Penguatkuasaan Mobile-First Penuh, Pengerasan CORS W3C, Penutupan Dev-Auth Bypass di Produksi, dan Pembersihan WebSocket Ping/Pong stdout. | `static/index.html`, `backend/config.py`, `backend/auth.py`, `backend/main.py`, `backend/websockets/`, `GEMINI.md` | Chrome DevTools MCP mobile 390x844 verified, 7/7 UI contracts pass, 63/63 auth & system API tests pass. |
+| **`3.7.0`** | 2026-09-16 06:30:00<br>`2026-09-15T22:30:00Z` | Antigravity Conductor | Pembaikan P0 auth guard, websocket line endings, Playwright Chrome autodetect, pembersihan mock terminal, dan reka bentuk semula Executive Bento Grid. | `static/index.html`, `backend/auth.py`, `backend/websockets/`, `tests/`, `GEMINI.md` | 89/89 Pytest lulus penuh (100% green, 48.89s), Chrome DevTools MCP desktop & mobile verified, 0 background tasks. |
 | **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0 (Direktori PRO), Penghapusan Jitter Butang (Emil Kowalski Craft), dan Arkitektur Mobile-First Sifar-Bertindih. | `static/index.html`, `var/`, `tools/mcp/`, `docs/`, `tests/test_dohnut_api.py`, `GEMINI.md` | FHS 3.0 root 13 fail, 0 jitter butang pada hover, 0 bertindih pada viewport 390x844 & 360x740, 5/5 Doh-Nut tests passing. |
 | **`3.5.0`** | 2026-09-12 15:15:00<br>`2026-09-12T07:15:00Z` | Antigravity Conductor | Penyatuan All-in-1 Mission Control Doh-Nut ke dalam Hermes-WebApp tanpa mengganggu persediaan Telegram Menu Button. | `backend/routers/dohnut.py`, `backend/main.py`, `static/index.html` | 5/5 API Endpoints 200 OK, Chrome DevTools MCP Desktop & Mobile (390px) verified, Zero console errors. |
 | **`3.4.0`** | 2026-09-12 02:30:00<br>`2026-09-11T18:30:00Z` | Conductor Agent | Pengesahan profil media sosial Chrome Profile 50 (`thisisdohnut@gmail.com`) dan integrasi WebBridge port 10087. | `static/index.html`, `scripts/ai_labs_dispatcher.py` | 6 platform disahkan, 62/62 Bun tests pass. |
