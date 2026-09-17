@@ -385,103 +385,485 @@
             color: rgba(255,255,255,0.4);
         }
 
-        /* ============================================
-           SHARED UTILITIES
-           ============================================ */
-        /* Rock-Solid Button Engine (Emil Kowalski Tactile Standard - Anti-Jitter) */
-        button, .btn-action, .dock-item {
+        /* ==========================================================================
+           ENTERPRISE BUTTON & INTERACTIVE CONTROLS ENGINE ($5M APP ARCHITECTURE)
+           Crafted to Emil Kowalski & Apple Human Interface Guidelines standards.
+           Zero Jitter · Tactile Haptics · Unified Tokens · Accessible Hit Targets
+           ========================================================================== */
+
+        :root {
+            /* Button Design Tokens */
+            --btn-radius-xs: 4px;
+            --btn-radius-sm: 6px;
+            --btn-radius: 8px;
+            --btn-radius-lg: 10px;
+            --btn-radius-pill: 9999px;
+            
+            --btn-h-xs: 26px;
+            --btn-h-sm: 32px;
+            --btn-h-md: 38px;
+            --btn-h-lg: 44px;
+
+            --btn-ease: cubic-bezier(0.23, 1, 0.32, 1);
+            --btn-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --btn-active-scale: 0.97;
+            --btn-focus-ring: 0 0 0 2px #000, 0 0 0 4px rgba(56, 189, 248, 0.6);
+        }
+
+        /* 1. Universal Interactive Reset & Anti-Jitter Enforcer */
+        button, .btn, .btn-action, .dock-item, .macro-tile, .tab-btn, .btn-close, .btn-keycap, [role="button"] {
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            font-family: inherit;
         }
 
-        button.glass, .btn-action.glass {
+        /* Absolute ban on .glass and magnetic cursor physics on interactive buttons */
+        button.glass, .btn.glass, .btn-action.glass {
             transform: none !important;
-            transition: background 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out, transform 100ms ease-out !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
 
-        .btn-action {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            cursor: pointer;
-            display: flex;
+        /* 2. Core Button Specification (.btn and alias .btn-action) */
+        .btn, .btn-action {
+            position: relative;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
+            height: var(--btn-h-md);
+            padding: 0 14px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            line-height: 1;
+            white-space: nowrap;
+            text-decoration: none;
+            border-radius: var(--btn-radius);
+            border: 1px solid #1f2538;
+            background: linear-gradient(180deg, #141824 0%, #0d101a 100%);
+            color: #e2e8f0;
+            cursor: pointer;
             user-select: none;
             -webkit-user-select: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 4px rgba(0, 0, 0, 0.4);
             transform: none;
-            transition: background 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out, transform 100ms ease-out;
+            transition: background 150ms var(--btn-ease),
+                        border-color 150ms var(--btn-ease),
+                        color 150ms var(--btn-ease),
+                        box-shadow 150ms var(--btn-ease),
+                        transform 100ms var(--btn-ease),
+                        opacity 150ms var(--btn-ease);
         }
 
+        /* Tactile Press Physics (Emil Kowalski Standard) */
+        .btn:active, .btn-action:active, button:active:not(.dock-item) {
+            transform: scale(var(--btn-active-scale)) !important;
+            transition: transform 80ms var(--btn-ease) !important;
+        }
+
+        /* Hover: Scoped strictly to desktop fine-pointer devices to prevent mobile sticky hover */
         @media (hover: hover) and (pointer: fine) {
-            .btn-action:hover {
-                background: rgba(255, 255, 255, 0.09);
-                border-color: rgba(255, 255, 255, 0.2);
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            .btn:hover, .btn-action:hover {
+                background: linear-gradient(180deg, #1a2030 0%, #121624 100%);
+                border-color: #2e3852;
+                color: #ffffff;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.5);
             }
         }
 
-        .btn-action:active, button.glass:active {
-            background: rgba(255, 255, 255, 0.14);
-            border-color: rgba(255, 255, 255, 0.25);
-            transform: scale(0.97) !important;
+        /* Keyboard Accessibility & Focus-Visible Ring */
+        .btn:focus-visible, .btn-action:focus-visible, button:focus-visible {
+            outline: none !important;
+            box-shadow: var(--btn-focus-ring) !important;
         }
 
-        .btn-action:focus-visible, .btn-primary:focus-visible {
-            outline: 2px solid rgba(255, 255, 255, 0.6);
-            outline-offset: 2px;
-        }
-
-        .btn-action.loading {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .btn-primary {
-            background: #fff;
-            color: #000;
-            border: 1px solid #fff;
-            border-radius: 8px;
+        /* 3. Button Size Hierarchy */
+        .btn-xs {
+            height: var(--btn-h-xs);
+            padding: 0 8px;
+            font-size: 9px;
             font-weight: 700;
-            cursor: pointer;
-            transition: background 150ms ease-out, box-shadow 150ms ease-out, transform 100ms ease-out;
+            border-radius: var(--btn-radius-xs);
+            gap: 4px;
+        }
+        .btn-xs i, .btn-xs svg { width: 11px; height: 11px; }
+
+        .btn-sm {
+            height: var(--btn-h-sm);
+            padding: 0 10px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: var(--btn-radius-sm);
+            gap: 5px;
+        }
+        .btn-sm i, .btn-sm svg { width: 12px; height: 12px; }
+
+        .btn-md {
+            height: var(--btn-h-md);
+            padding: 0 14px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: var(--btn-radius);
+            gap: 6px;
+        }
+        .btn-md i, .btn-md svg { width: 14px; height: 14px; }
+
+        .btn-lg {
+            height: var(--btn-h-lg);
+            padding: 0 20px;
+            font-size: 12px;
+            font-weight: 800;
+            border-radius: var(--btn-radius-lg);
+            gap: 8px;
+        }
+        .btn-lg i, .btn-lg svg { width: 16px; height: 16px; }
+
+        .btn-block, .btn-full {
+            width: 100% !important;
+            display: flex !important;
         }
 
+        /* Icon-Only Buttons (1:1 Aspect Ratio) */
+        .btn-icon {
+            padding: 0 !important;
+            aspect-ratio: 1 / 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .btn-icon.btn-xs { width: var(--btn-h-xs); min-width: var(--btn-h-xs); }
+        .btn-icon.btn-sm { width: var(--btn-h-sm); min-width: var(--btn-h-sm); }
+        .btn-icon.btn-md { width: var(--btn-h-md); min-width: var(--btn-h-md); }
+        .btn-icon.btn-lg { width: var(--btn-h-lg); min-width: var(--btn-h-lg); }
+
+        /* Standardized Close Controls for Modal Overlays */
+        .btn-close {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 150ms var(--btn-ease);
+        }
+        .btn-close:active { transform: scale(0.92) !important; }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-close:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.2);
+                color: #ffffff;
+            }
+        }
+
+        /* 4. Semantic Color Variants */
+
+        /* Primary: High-Contrast Solid White (Linear / Apple Flagship) */
+        .btn-primary {
+            background: #ffffff !important;
+            color: #09090b !important;
+            border: 1px solid #ffffff !important;
+            font-weight: 800 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+        }
         @media (hover: hover) and (pointer: fine) {
             .btn-primary:hover {
-                background: #f0f0f0;
-                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+                background: #f4f4f5 !important;
+                border-color: #ffffff !important;
+                box-shadow: 0 0 18px rgba(255, 255, 255, 0.35) !important;
+            }
+        }
+        .btn-primary:active {
+            background: #e4e4e7 !important;
+            transform: scale(var(--btn-active-scale)) !important;
+        }
+
+        /* Secondary: Sleek Dark Zinc (Default Pro) */
+        .btn-secondary {
+            background: linear-gradient(180deg, #181d2a 0%, #101420 100%) !important;
+            border: 1px solid #242b3e !important;
+            color: #e2e8f0 !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-secondary:hover {
+                border-color: #3b4664 !important;
+                background: linear-gradient(180deg, #202738 0%, #161b2a 100%) !important;
+                color: #ffffff !important;
             }
         }
 
-        .btn-primary:active {
-            background: #d4d4d4;
-            transform: scale(0.97) !important;
+        /* Accent: Neon Cyan (Hermes Engine Theme) */
+        .btn-cyan, .btn-accent {
+            background: rgba(56, 189, 248, 0.12) !important;
+            border: 1px solid rgba(56, 189, 248, 0.35) !important;
+            color: #38bdf8 !important;
+            box-shadow: inset 0 1px 0 rgba(56, 189, 248, 0.2), 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-cyan:hover, .btn-accent:hover {
+                background: rgba(56, 189, 248, 0.22) !important;
+                border-color: rgba(56, 189, 248, 0.6) !important;
+                color: #e0f2fe !important;
+                box-shadow: 0 0 16px rgba(56, 189, 248, 0.3) !important;
+            }
         }
 
+        /* Purple: Swarm & Agent Automation Theme */
+        .btn-purple {
+            background: rgba(168, 85, 247, 0.12) !important;
+            border: 1px solid rgba(168, 85, 247, 0.35) !important;
+            color: #c084fc !important;
+            box-shadow: inset 0 1px 0 rgba(168, 85, 247, 0.2), 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-purple:hover {
+                background: rgba(168, 85, 247, 0.22) !important;
+                border-color: rgba(168, 85, 247, 0.6) !important;
+                color: #f3e8ff !important;
+                box-shadow: 0 0 16px rgba(168, 85, 247, 0.3) !important;
+            }
+        }
+
+        /* Pink: Doh-Nut Signature Theme */
+        .btn-pink {
+            background: rgba(239, 159, 189, 0.12) !important;
+            border: 1px solid rgba(239, 159, 189, 0.4) !important;
+            color: #ef9fbd !important;
+            box-shadow: inset 0 1px 0 rgba(239, 159, 189, 0.2), 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-pink:hover {
+                background: rgba(239, 159, 189, 0.24) !important;
+                border-color: rgba(239, 159, 189, 0.7) !important;
+                color: #ffffff !important;
+                box-shadow: 0 0 16px rgba(239, 159, 189, 0.3) !important;
+            }
+        }
+
+        /* Success / Emerald */
+        .btn-emerald, .btn-success {
+            background: rgba(34, 197, 94, 0.12) !important;
+            border: 1px solid rgba(34, 197, 94, 0.35) !important;
+            color: #4ade80 !important;
+            box-shadow: inset 0 1px 0 rgba(34, 197, 94, 0.2), 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-emerald:hover, .btn-success:hover {
+                background: rgba(34, 197, 94, 0.22) !important;
+                border-color: rgba(34, 197, 94, 0.6) !important;
+                color: #dcfce7 !important;
+                box-shadow: 0 0 16px rgba(34, 197, 94, 0.3) !important;
+            }
+        }
+
+        /* Warning / Amber */
+        .btn-amber, .btn-warning {
+            background: rgba(251, 191, 36, 0.12) !important;
+            border: 1px solid rgba(251, 191, 36, 0.35) !important;
+            color: #fbbf24 !important;
+            box-shadow: inset 0 1px 0 rgba(251, 191, 36, 0.2), 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-amber:hover, .btn-warning:hover {
+                background: rgba(251, 191, 36, 0.22) !important;
+                border-color: rgba(251, 191, 36, 0.6) !important;
+                color: #fef3c7 !important;
+                box-shadow: 0 0 16px rgba(251, 191, 36, 0.3) !important;
+            }
+        }
+
+        /* Danger / Crimson (Destructive Actions) */
         .btn-danger {
-            background: rgba(239, 68, 68, 0.15) !important;
+            background: rgba(239, 68, 68, 0.14) !important;
             border: 1px solid rgba(239, 68, 68, 0.4) !important;
-            color: #fca5a5 !important;
+            color: #f87171 !important;
+            box-shadow: inset 0 1px 0 rgba(239, 68, 68, 0.2), 0 2px 6px rgba(0, 0, 0, 0.4) !important;
         }
-
         @media (hover: hover) and (pointer: fine) {
             .btn-danger:hover {
                 background: rgba(239, 68, 68, 0.25) !important;
-                border-color: rgba(239, 68, 68, 0.6) !important;
-                box-shadow: 0 0 12px rgba(239, 68, 68, 0.25) !important;
+                border-color: rgba(239, 68, 68, 0.65) !important;
+                color: #fca5a5 !important;
+                box-shadow: 0 0 16px rgba(239, 68, 68, 0.35) !important;
             }
         }
 
-        .btn-danger:active {
-            transform: scale(0.97) !important;
+        /* Ghost: Quiet Until Hover */
+        .btn-ghost {
+            background: transparent !important;
+            border: 1px solid transparent !important;
+            color: #94a3b8 !important;
+            box-shadow: none !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-ghost:hover {
+                background: rgba(255, 255, 255, 0.06) !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+                color: #ffffff !important;
+            }
+        }
+
+        /* Outline */
+        .btn-outline {
+            background: transparent !important;
+            border: 1px solid #242b3e !important;
+            color: #cbd5e1 !important;
+            box-shadow: none !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-outline:hover {
+                background: rgba(255, 255, 255, 0.04) !important;
+                border-color: #3b4664 !important;
+                color: #ffffff !important;
+            }
+        }
+
+        /* 5. Mechanical Tactile Keycaps (Termux Hacker Keyboard) */
+        .btn-keycap, .term-key {
+            height: 36px;
+            min-width: 36px;
+            padding: 0 10px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 10px;
+            font-weight: 800;
+            background: linear-gradient(180deg, #1c2232 0%, #121622 100%);
+            border: 1px solid #273046;
+            border-bottom: 2px solid #0f121b;
+            border-radius: 6px;
+            box-shadow: 0 2px 0 #07090e, inset 0 1px 0 rgba(255,255,255,0.12);
+            color: #e0e0e0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            transition: all 80ms var(--btn-ease);
+        }
+        .btn-keycap:active, .term-key:active {
+            transform: translateY(2px) scale(0.98) !important;
+            border-bottom-width: 1px !important;
+            box-shadow: 0 0 0 transparent, inset 0 1px 0 rgba(255,255,255,0.06) !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-keycap:hover, .term-key:hover {
+                filter: brightness(1.15);
+                border-color: #3b4868;
+            }
+        }
+
+        /* 6. Bento Macro Deck Tiles (1-Tap System Operations) */
+        .macro-tile, .btn-macro-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 8px;
+            min-height: 56px;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #131724 0%, #0d101a 100%) !important;
+            border: 1px solid #1e2538 !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+            cursor: pointer;
+            user-select: none;
+            transition: all 160ms var(--btn-ease) !important;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .macro-tile:hover, .btn-macro-tile:hover {
+                background: linear-gradient(180deg, #191f30 0%, #111522 100%) !important;
+                border-color: #38bdf8 !important;
+                box-shadow: inset 0 1px 0 rgba(56, 189, 248, 0.2), 0 4px 14px rgba(56, 189, 248, 0.15) !important;
+                color: #ffffff !important;
+            }
+        }
+        .macro-tile:active, .btn-macro-tile:active {
+            transform: scale(0.96) !important;
+            border-color: #0284c7 !important;
+        }
+
+        /* 7. Segmented Button Controls & Tab Bars */
+        .btn-group, .segmented-control {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px;
+            background: #090c14;
+            border: 1px solid #1a2030;
+            border-radius: 8px;
+            gap: 2px;
+        }
+        .btn-group > .btn, .segmented-control > .btn {
+            height: 28px;
+            padding: 0 10px;
+            font-size: 10px;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            box-shadow: none;
+            border-radius: 6px;
+        }
+        .btn-group > .btn.active, .segmented-control > .btn.active {
+            background: #192030;
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* 8. Disabled & Loading State Transitions */
+        .btn:disabled, .btn-action:disabled, .btn.disabled, button:disabled {
+            opacity: 0.4 !important;
+            pointer-events: none !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+        }
+
+        .btn.is-loading, .btn-action.loading {
+            pointer-events: none !important;
+            position: relative;
+            color: transparent !important;
+        }
+        .btn.is-loading::after, .btn-action.loading::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: btnSpin 0.6s linear infinite;
+        }
+        @keyframes btnSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 9. Mobile Hit-Target Expansion Helper */
+        @media (max-width: 640px) {
+            .btn-xs, .btn-icon.btn-xs, .btn-sm, .btn-icon.btn-sm {
+                position: relative;
+            }
+            .btn-xs::before, .btn-sm::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                min-width: 44px;
+                min-height: 44px;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+            }
         }
 
         .dock-item:active {
@@ -610,7 +992,7 @@
                 <i data-lucide="book-open" style="width: 12px; height: 12px;"></i>
                 <span id="obsidian-note-title">Obsidian Vault</span>
             </div>
-            <button onclick="openModule('appdrawer')" class="btn-action" style="padding: 5px 10px; font-size: 9px; background: #141724; border: 1px solid #272f44; color: #cbd5e1; border-radius: 6px; cursor: pointer;" title="Open All 16 Sub-Systems" aria-label="Open App Catalog">
+            <button type="button" onclick="openModule('appdrawer')" class="btn btn-xs btn-secondary" title="Open All 16 Sub-Systems" aria-label="Open App Catalog">
                 <i data-lucide="layout-grid" style="width: 12px; height: 12px; color: #38bdf8;"></i>
                 <span>Catalog</span>
             </button>
@@ -622,7 +1004,7 @@
         <i data-lucide="terminal" style="width: 16px; height: 16px; color: #38bdf8; flex-shrink: 0;"></i>
         <input type="text" id="direct-hermes-input" aria-label="Direct Hermes command input" placeholder="Type a task or command for Hermes OS (e.g. 'run audit', 'spawn swarm', 'sync tunnel')..." onkeydown="if(event.key==='Enter') executeDirectHermesCommand()" style="flex: 1; background: transparent; border: none; outline: none; font-size: 12px; font-weight: 500; color: #f8fafc; font-family: inherit;">
         <span style="font-size: 9px; color: #64748b; background: #141824; border: 1px solid #22293d; padding: 2px 6px; border-radius: 4px; font-family: monospace;">↵ ENTER</span>
-        <button onclick="executeDirectHermesCommand()" class="btn-action" style="padding: 6px 14px; font-size: 10px; font-weight: 800; background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; cursor: pointer;" aria-label="Run command">RUN</button>
+        <button type="button" onclick="executeDirectHermesCommand()" class="btn btn-sm btn-cyan" data-haptic="medium" aria-label="Run command">RUN</button>
     </div>
 
     <!-- LIVE SWARM TELEMETRY & WORKER TICKER -->
@@ -634,8 +1016,8 @@
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
             <span id="swarm-telemetry-pill" style="font-size: 8px; font-weight: 700; padding: 2px 8px; border-radius: 3px; background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); display: inline-flex; align-items: center; gap: 4px;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #4ade80; display: inline-block;"></span> LIVE</span>
-            <button onclick="refreshSwarmTelemetry()" class="btn-action" style="font-size: 8px; padding: 2px 6px; border-radius: 3px;" title="Refresh Swarm Telemetry" aria-label="Refresh Swarm Telemetry">
-                <i data-lucide="refresh-cw" style="width: 8px; height: 8px;"></i>
+            <button type="button" onclick="refreshSwarmTelemetry()" class="btn btn-xs btn-icon btn-ghost" title="Refresh Swarm Telemetry" aria-label="Refresh Swarm Telemetry">
+                <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i>
             </button>
         </div>
     </div>
@@ -656,27 +1038,27 @@
                     <span style="font-size: 8px; color: #64748b; font-weight: 600;">1-TAP RAPID ACTION</span>
                 </div>
                 <div class="action-launchers-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                    <button onclick="executeDirectHermesCommandText('Run full codebase audit and fix all lint/bugs')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                    <button type="button" onclick="executeDirectHermesCommandText('Run full codebase audit and fix all lint/bugs')" class="btn-macro-tile" data-haptic="medium" aria-label="Run full codebase audit">
                         <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #4ade80;"></i>
-                        <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Audit & Fix</span>
+                        <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Audit &amp; Fix</span>
                     </button>
-                    <button onclick="executeDirectHermesCommandText('Run pytest suite on tests/')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                    <button type="button" onclick="executeDirectHermesCommandText('Run pytest suite on tests/')" class="btn-macro-tile" data-haptic="medium" aria-label="Run pytest suite">
                         <i data-lucide="play-circle" style="width: 16px; height: 16px; color: #38bdf8;"></i>
                         <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Run Pytest</span>
                     </button>
-                    <button onclick="triggerMacro('cleanup_zombies')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                    <button type="button" onclick="triggerMacro('cleanup_zombies')" class="btn-macro-tile" data-haptic="heavy" aria-label="Kill zombie processes">
                         <i data-lucide="skull" style="width: 16px; height: 16px; color: #f43f5e;"></i>
                         <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Kill Zombies</span>
                     </button>
-                    <button onclick="triggerMacro('clean_temp')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                    <button type="button" onclick="triggerMacro('clean_temp')" class="btn-macro-tile" data-haptic="medium" aria-label="Clean temporary files">
                         <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #fbbf24;"></i>
                         <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Clean Temp</span>
                     </button>
-                    <button onclick="triggerMacro('sync_webhook')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                    <button type="button" onclick="triggerMacro('sync_webhook')" class="btn-macro-tile" data-haptic="medium" aria-label="Sync tunnel webhook">
                         <i data-lucide="link-2" style="width: 16px; height: 16px; color: #34d399;"></i>
                         <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Sync Tunnel</span>
                     </button>
-                    <button onclick="triggerMacro('lock_pc')" class="btn-action macro-tile" style="padding: 10px 8px; flex-direction: column; gap: 6px; border-radius: 8px; background: #111420; border: 1px solid #1e2438; cursor: pointer;">
+                    <button type="button" onclick="triggerMacro('lock_pc')" class="btn-macro-tile" data-haptic="heavy" aria-label="Lock host PC">
                         <i data-lucide="lock" style="width: 16px; height: 16px; color: #a78bfa;"></i>
                         <span style="font-size: 9px; font-weight: 700; color: #f1f5f9;">Lock PC</span>
                     </button>
@@ -692,7 +1074,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span style="font-size: 8px; color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); padding: 2px 6px; border-radius: 4px; font-weight: 700;">LIVE LOGS</span>
-                        <button onclick="fetchLogs()" class="btn-action" style="padding: 3px 8px; font-size: 8px; border-radius: 4px;" aria-label="Sync logs">Sync</button>
+                        <button onclick="fetchLogs()" class="btn btn-xs btn-ghost" data-haptic="light" aria-label="Sync logs"><i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Sync</button>
                     </div>
                 </div>
                 <div id="agent-logs" style="flex: 1; overflow-y: auto; min-height: 120px; max-height: 260px; background: #07080d; border: 1px solid #161b2a; border-radius: 6px; padding: 10px; font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 10px; line-height: 1.6;">
@@ -722,11 +1104,11 @@
                     <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">6 Social Platforms (FB, IG, TT, Threads, X, YT) · Kitchen Kanban · 10 AI Labs</div>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                    <button onclick="event.stopPropagation(); openModule('dohnut')" class="btn-primary" style="flex: 1; padding: 6px 10px; font-size: 9px; font-weight: 700; background: #ef9fbd; color: #1e1219; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;" aria-label="Open Doh-Nut">
+                    <button type="button" onclick="event.stopPropagation(); openModule('dohnut')" class="btn btn-sm btn-pink" style="flex: 1;" aria-label="Open Doh-Nut">
                         <span>Launch HQ</span>
                         <i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i>
                     </button>
-                    <button onclick="event.stopPropagation(); openModule('social')" class="btn-action" style="padding: 6px 10px; font-size: 9px; border-color: rgba(239, 159, 189, 0.4); color: #ef9fbd; border-radius: 6px;" aria-label="Omni Social">
+                    <button type="button" onclick="event.stopPropagation(); openModule('social')" class="btn btn-sm btn-outline" style="border-color: rgba(239, 159, 189, 0.4); color: #ef9fbd;" aria-label="Omni Social">
                         <i data-lucide="share-2" style="width: 12px; height: 12px;"></i>
                         <span>Social</span>
                     </button>
@@ -752,8 +1134,14 @@
                     <div style="display: flex; gap: 4px;" id="swarm-status-dots"></div>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                    <button onclick="event.stopPropagation(); quickSpawnAgent()" class="btn-action" style="flex: 1; padding: 6px 10px; font-size: 9px; font-weight: 700; background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.5); color: #e9d5ff; border-radius: 6px;" aria-label="Quick Spawn">+ Spawn Agent</button>
-                    <button onclick="event.stopPropagation(); openModule('swarm')" class="btn-action" style="padding: 6px 10px; font-size: 9px; border-radius: 6px;" aria-label="Open Swarm Control">Manage ➔</button>
+                    <button type="button" onclick="event.stopPropagation(); quickSpawnAgent()" class="btn btn-sm btn-purple" style="flex: 1;" aria-label="Quick Spawn">
+                        <i data-lucide="plus" style="width: 12px; height: 12px;"></i>
+                        <span>Spawn Agent</span>
+                    </button>
+                    <button type="button" onclick="event.stopPropagation(); openModule('swarm')" class="btn btn-sm btn-secondary" aria-label="Open Swarm Control">
+                        <span>Manage</span>
+                        <i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i>
+                    </button>
                 </div>
             </div>
 
@@ -879,7 +1267,7 @@
             <i data-lucide="grid" style="width: 16px; height: 16px; color: #c084fc;"></i>
             <span class="module-title">Hermes OS Sub-Systems Catalog</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close drawer"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close drawer"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;">
         
@@ -1048,7 +1436,7 @@
             <span class="module-title">Voice Terminal & STEM Audio Stream</span>
             <span id="audio-ws-status" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800; text-transform: uppercase;">WS Standby</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; min-height: 0;">
         
@@ -1092,8 +1480,9 @@
                     <label style="display: flex; align-items: center; gap: 6px; font-size: 9px; color: rgba(255,255,255,0.6); cursor: pointer;">
                         <input type="checkbox" id="voice-auto-exec" checked style="accent-color: #3b82f6; cursor: pointer;"> Auto-Execute CLI
                     </label>
-                    <button onclick="toggleVoiceRecording()" id="voice-main-mic-btn" class="btn-action" style="padding: 4px 10px; font-size: 8px; background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.4); color: #93c5fd;">
-                        🎤 Start Listening
+                    <button onclick="toggleVoiceRecording()" id="voice-main-mic-btn" class="btn btn-xs btn-cyan" data-haptic="medium" style="flex-shrink: 0;">
+                        <i data-lucide="mic" style="width: 11px; height: 11px;"></i>
+                        <span>Start Listening</span>
                     </button>
                 </div>
             </div>
@@ -1109,7 +1498,9 @@
             <div class="particle-container"></div>
             <div style="position: relative; z-index: 2; display: flex; width: 100%; gap: 8px;">
                 <input type="text" id="voice-test-input" aria-label="Voice test input" placeholder="Type simulated voice command (e.g. 'show swarm')..." autocomplete="off" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #fff; border-radius: 6px; padding: 8px 12px; font-size: 11px; outline: none;">
-                <button onclick="sendSimulatedVoiceCmd()" class="btn-action" style="padding: 8px 16px; background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.4); color: #93c5fd;">Send Intent</button>
+                <button onclick="sendSimulatedVoiceCmd()" class="btn btn-sm btn-cyan" data-haptic="light">
+                    <i data-lucide="send" style="width: 12px; height: 12px;"></i> Send Intent
+                </button>
             </div>
         </div>
 
@@ -1122,18 +1513,14 @@
 <div id="mod-monitor" class="module-overlay" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="module-header">
         <span class="module-title">Process Manager</span>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; overflow-y: auto; padding: 16px;" id="process-list">
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Refresh to scan</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px;">
-        <button onclick="fetchProcesses(this)" class="btn-action" style="width: 100%; padding: 14px;">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Refresh Tasklist
-            </div>
+        <button onclick="fetchProcesses(this)" class="btn btn-secondary btn-lg btn-block" data-haptic="medium">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh Tasklist
         </button>
     </div>
 </div>
@@ -1155,18 +1542,30 @@
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <span style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #4ade80; font-size: 8px; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">● PTY LIVE</span>
-            <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+            <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
         </div>
     </div>
 
     <!-- PRESET COMMAND CHIPS TOOLBAR (1-Tap ReactBits Quick Bar) -->
     <div style="padding: 8px 12px; background: rgba(0, 0, 0, 0.6); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; touch-action: pan-x;">
-        <button onclick="sendQuickTermCmd('clear')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #a7f3d0; border-color: rgba(52, 211, 153, 0.3); flex-shrink: 0;">🧹 clear</button>
-        <button onclick="sendQuickTermCmd('Get-ChildItem')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #93c5fd; border-color: rgba(147, 197, 253, 0.3); flex-shrink: 0;">📁 ls / dir</button>
-        <button onclick="sendQuickTermCmd('C:\\Users\\megat\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe -m pytest tests/')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #fde047; border-color: rgba(253, 224, 71, 0.3); flex-shrink: 0;">🧪 pytest</button>
-        <button onclick="sendQuickTermCmd('Get-Process | Sort-Object CPU -Descending | Select-Object -First 10')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #f472b6; border-color: rgba(244, 114, 182, 0.3); flex-shrink: 0;">📊 top cpu</button>
-        <button onclick="sendQuickTermCmd('git status')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #c084fc; border-color: rgba(192, 132, 252, 0.3); flex-shrink: 0;">🌿 git status</button>
-        <button onclick="sendQuickTermCmd('Get-NetTCPConnection -State Listen')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">🌐 netstat</button>
+        <button onclick="sendQuickTermCmd('clear')" class="btn btn-xs btn-outline btn-emerald" style="flex-shrink: 0;" data-haptic="light">
+            <i data-lucide="trash-2" style="width: 11px; height: 11px;"></i> clear
+        </button>
+        <button onclick="sendQuickTermCmd('Get-ChildItem')" class="btn btn-xs btn-outline btn-cyan" style="flex-shrink: 0;" data-haptic="light">
+            <i data-lucide="folder" style="width: 11px; height: 11px;"></i> ls / dir
+        </button>
+        <button onclick="sendQuickTermCmd('C:\\Users\\megat\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe -m pytest tests/')" class="btn btn-xs btn-outline btn-amber" style="flex-shrink: 0;" data-haptic="light">
+            <i data-lucide="flask-conical" style="width: 11px; height: 11px;"></i> pytest
+        </button>
+        <button onclick="sendQuickTermCmd('Get-Process | Sort-Object CPU -Descending | Select-Object -First 10')" class="btn btn-xs btn-outline btn-pink" style="flex-shrink: 0;" data-haptic="light">
+            <i data-lucide="activity" style="width: 11px; height: 11px;"></i> top cpu
+        </button>
+        <button onclick="sendQuickTermCmd('git status')" class="btn btn-xs btn-outline btn-purple" style="flex-shrink: 0;" data-haptic="light">
+            <i data-lucide="git-branch" style="width: 11px; height: 11px;"></i> git status
+        </button>
+        <button onclick="sendQuickTermCmd('Get-NetTCPConnection -State Listen')" class="btn btn-xs btn-outline btn-cyan" style="flex-shrink: 0;" data-haptic="light">
+            <i data-lucide="network" style="width: 11px; height: 11px;"></i> netstat
+        </button>
     </div>
 
     <!-- TERMINAL CANVAS CONTAINER -->
@@ -1181,38 +1580,38 @@
         <div style="display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; background: rgba(0,0,0,0.6); padding: 6px; border-radius: 8px; border: 1px solid rgba(168, 85, 247, 0.2);">
             <!-- Row 1: Controls & Navigation -->
             <div style="display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x;">
-                <button onclick="sendSpecialKey('esc')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #f43f5e; border-color: rgba(244, 63, 94, 0.4); flex-shrink: 0;">ESC</button>
-                <button onclick="sendSpecialKey('tab')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); flex-shrink: 0;">TAB</button>
-                <button onclick="sendSpecialKey('ctrl+c')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); flex-shrink: 0;">CTRL+C</button>
-                <button onclick="sendSpecialKey('ctrl+z')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); flex-shrink: 0;">CTRL+Z</button>
-                <button onclick="sendSpecialKey('ctrl+l')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a855f7; border-color: rgba(168, 85, 247, 0.4); flex-shrink: 0;">CTRL+L</button>
-                <button onclick="sendSpecialKey('up')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">▲ UP</button>
-                <button onclick="sendSpecialKey('down')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">▼ DOWN</button>
-                <button onclick="sendSpecialKey('left')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">◄ LEFT</button>
-                <button onclick="sendSpecialKey('right')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">► RIGHT</button>
-                <button onclick="sendSpecialKey('home')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a3e635; flex-shrink: 0;">HOME</button>
-                <button onclick="sendSpecialKey('end')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #a3e635; flex-shrink: 0;">END</button>
-                <button onclick="sendSpecialKey('clear')" class="btn-action" style="padding: 5px 10px; font-size: 9px; font-weight: 800; color: #c084fc; flex-shrink: 0;">CLEAR</button>
+                <button onclick="sendSpecialKey('esc')" class="btn-keycap" style="color: #f43f5e; border-color: rgba(244, 63, 94, 0.4); flex-shrink: 0;">ESC</button>
+                <button onclick="sendSpecialKey('tab')" class="btn-keycap" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); flex-shrink: 0;">TAB</button>
+                <button onclick="sendSpecialKey('ctrl+c')" class="btn-keycap" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); flex-shrink: 0;">CTRL+C</button>
+                <button onclick="sendSpecialKey('ctrl+z')" class="btn-keycap" style="color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); flex-shrink: 0;">CTRL+Z</button>
+                <button onclick="sendSpecialKey('ctrl+l')" class="btn-keycap" style="color: #a855f7; border-color: rgba(168, 85, 247, 0.4); flex-shrink: 0;">CTRL+L</button>
+                <button onclick="sendSpecialKey('up')" class="btn-keycap" aria-label="Up arrow" style="color: #e0e0e0; flex-shrink: 0;"><i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i></button>
+                <button onclick="sendSpecialKey('down')" class="btn-keycap" aria-label="Down arrow" style="color: #e0e0e0; flex-shrink: 0;"><i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i></button>
+                <button onclick="sendSpecialKey('left')" class="btn-keycap" aria-label="Left arrow" style="color: #e0e0e0; flex-shrink: 0;"><i data-lucide="arrow-left" style="width: 12px; height: 12px;"></i></button>
+                <button onclick="sendSpecialKey('right')" class="btn-keycap" aria-label="Right arrow" style="color: #e0e0e0; flex-shrink: 0;"><i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i></button>
+                <button onclick="sendSpecialKey('home')" class="btn-keycap" style="color: #a3e635; flex-shrink: 0;">HOME</button>
+                <button onclick="sendSpecialKey('end')" class="btn-keycap" style="color: #a3e635; flex-shrink: 0;">END</button>
+                <button onclick="sendSpecialKey('clear')" class="btn-keycap" style="color: #c084fc; flex-shrink: 0;">CLEAR</button>
             </div>
             <!-- Row 2: Syntax & Symbols -->
             <div style="display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x;">
-                <button onclick="sendSpecialKey('|')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a855f7; border-color: rgba(168, 85, 247, 0.3); flex-shrink: 0;">|</button>
-                <button onclick="sendSpecialKey('/')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">/</button>
-                <button onclick="sendSpecialKey('-')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">-</button>
-                <button onclick="sendSpecialKey('~')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a3e635; flex-shrink: 0;">~</button>
-                <button onclick="sendSpecialKey('\\')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #fbbf24; flex-shrink: 0;">\</button>
-                <button onclick="sendSpecialKey('&')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #f43f5e; flex-shrink: 0;">&amp;</button>
-                <button onclick="sendSpecialKey('>')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #38bdf8; flex-shrink: 0;">&gt;</button>
-                <button onclick="sendSpecialKey('$')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #a3e635; flex-shrink: 0;">$</button>
-                <button onclick="sendSpecialKey('*')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #fbbf24; flex-shrink: 0;">*</button>
-                <button onclick="sendSpecialKey('&quot;')" class="btn-action" style="padding: 4px 10px; font-size: 10px; font-weight: 800; color: #e0e0e0; flex-shrink: 0;">"</button>
+                <button onclick="sendSpecialKey('|')" class="btn-keycap" style="color: #a855f7; border-color: rgba(168, 85, 247, 0.3); flex-shrink: 0;">|</button>
+                <button onclick="sendSpecialKey('/')" class="btn-keycap" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">/</button>
+                <button onclick="sendSpecialKey('-')" class="btn-keycap" style="color: #e0e0e0; flex-shrink: 0;">-</button>
+                <button onclick="sendSpecialKey('~')" class="btn-keycap" style="color: #a3e635; flex-shrink: 0;">~</button>
+                <button onclick="sendSpecialKey('\\')" class="btn-keycap" style="color: #fbbf24; flex-shrink: 0;">\</button>
+                <button onclick="sendSpecialKey('&')" class="btn-keycap" style="color: #f43f5e; flex-shrink: 0;">&amp;</button>
+                <button onclick="sendSpecialKey('>')" class="btn-keycap" style="color: #38bdf8; flex-shrink: 0;">&gt;</button>
+                <button onclick="sendSpecialKey('$')" class="btn-keycap" style="color: #a3e635; flex-shrink: 0;">$</button>
+                <button onclick="sendSpecialKey('*')" class="btn-keycap" style="color: #fbbf24; flex-shrink: 0;">*</button>
+                <button onclick="sendSpecialKey('&quot;')" class="btn-keycap" style="color: #e0e0e0; flex-shrink: 0;">"</button>
             </div>
         </div>
 
         <!-- COMMAND INPUT BAR -->
         <div style="display: flex; gap: 8px; flex-shrink: 0; padding-bottom: 12px;">
             <input type="text" id="term-input" autocomplete="off" spellcheck="false" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(168, 85, 247, 0.4); color: #fff; border-radius: 8px; padding: 12px 14px; font-size: 11px; font-family: 'JetBrains Mono', monospace; outline: none;" placeholder=">_ type command to execute..." aria-label="Terminal command input" onkeydown="if(event.key==='Enter') sendCmd()">
-            <button onclick="sendCmd()" class="btn-action" style="padding: 12px 20px; font-weight: 800; font-size: 10px; background: rgba(168, 85, 247, 0.3); border: 1px solid rgba(168, 85, 247, 0.6); color: #e9d5ff; border-radius: 8px;">EXECUTE</button>
+            <button onclick="sendCmd()" class="btn btn-purple btn-md" data-haptic="medium"><i data-lucide="play" style="width: 12px; height: 12px;"></i> EXECUTE</button>
         </div>
     </div>
 </div>
@@ -1224,22 +1623,32 @@
             <span class="module-title">Vision Node</span>
             <span id="ai-status" style="background: #fff; color: #000; font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">Active</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px;">
         <!-- URL INPUT & GO BUTTON -->
         <div style="display: flex; gap: 8px; flex-shrink: 0;">
             <style>#browser-url:focus-visible { outline: 2px solid rgba(255,255,255,0.3) !important; outline-offset: -1px; }</style>
             <input type="text" id="browser-url" autocomplete="off" spellcheck="false" inputmode="url" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #fff; border-radius: 8px; padding: 12px 16px; font-size: 11px; outline: none;" placeholder="https://" aria-label="URL input">
-            <button onclick="navBrowser()" class="btn-primary btn-action" style="padding: 12px 20px;">Go</button>
+            <button onclick="navBrowser()" class="btn btn-primary btn-md" data-haptic="medium" aria-label="Navigate URL">
+                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+            </button>
         </div>
 
         <!-- 1-TAP QUICK URL CHIPS -->
         <div style="display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; touch-action: pan-x;">
-            <button onclick="quickNavBrowser('https://www.google.com')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #a7f3d0; border-color: rgba(52, 211, 153, 0.3); flex-shrink: 0;">🌐 Google</button>
-            <button onclick="quickNavBrowser('https://github.com')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #c084fc; border-color: rgba(192, 132, 252, 0.3); flex-shrink: 0;">🐙 GitHub</button>
-            <button onclick="quickNavBrowser('http://127.0.0.1:9230/api/stats')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); flex-shrink: 0;">🦅 Hermes API</button>
-            <button onclick="quickNavBrowser('http://127.0.0.1:11434')" class="btn-action" style="padding: 4px 10px; font-size: 9px; font-weight: 700; color: #fde047; border-color: rgba(253, 224, 71, 0.3); flex-shrink: 0;">🤖 Ollama API</button>
+            <button onclick="quickNavBrowser('https://www.google.com')" class="btn btn-xs btn-outline btn-emerald" style="flex-shrink: 0;" data-haptic="light">
+                <i data-lucide="globe" style="width: 11px; height: 11px;"></i> Google
+            </button>
+            <button onclick="quickNavBrowser('https://github.com')" class="btn btn-xs btn-outline btn-purple" style="flex-shrink: 0;" data-haptic="light">
+                <i data-lucide="git-branch" style="width: 11px; height: 11px;"></i> GitHub
+            </button>
+            <button onclick="quickNavBrowser('http://127.0.0.1:9230/api/stats')" class="btn btn-xs btn-outline btn-cyan" style="flex-shrink: 0;" data-haptic="light">
+                <i data-lucide="cpu" style="width: 11px; height: 11px;"></i> Hermes API
+            </button>
+            <button onclick="quickNavBrowser('http://127.0.0.1:11434')" class="btn btn-xs btn-outline btn-amber" style="flex-shrink: 0;" data-haptic="light">
+                <i data-lucide="bot" style="width: 11px; height: 11px;"></i> Ollama API
+            </button>
         </div>
 
         <!-- LIVE STREAM VIEWPORT & FLOATING BADGE -->
@@ -1253,7 +1662,9 @@
                 <span style="color: #4ade80; background: rgba(0,0,0,0.85); border: 1px solid rgba(74, 222, 128, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 9px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">● MANUAL CONTROL ACTIVE</span>
             </div>
         </div>
-        <button id="btn-takeover" onclick="toggleTakeover()" class="btn-action" style="width: 100%; padding: 14px; flex-shrink: 0;">Take Control</button>
+        <button id="btn-takeover" onclick="toggleTakeover()" class="btn btn-secondary btn-lg btn-block" data-haptic="medium" style="flex-shrink: 0;">
+            <i data-lucide="gamepad-2" style="width: 15px; height: 15px;"></i> Take Control
+        </button>
     </div>
 </div>
 
@@ -1261,14 +1672,18 @@
 <div id="mod-files" class="module-overlay" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="module-header">
         <span class="module-title" id="files-current-path">File Explorer (C:\)</span>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; overflow-y: auto; padding: 16px;" id="files-list">
         <div style="text-align: center; color: rgba(255,255,255,0.4); font-size: 11px;">Scanning drive...</div>
     </div>
     <div style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.04); display: flex; gap: 8px; flex-shrink: 0;">
-        <button onclick="fetchFiles('C:\\')" class="btn-action" style="flex: 1; padding: 10px;">C:\ Drive</button>
-        <button onclick="fetchFiles('C:\\Users\\megat\\Hermes-WebApp')" class="btn-action" style="flex: 1; padding: 10px;">Hermes Root</button>
+        <button onclick="fetchFiles('C:\\')" class="btn btn-secondary btn-sm" style="flex: 1;" data-haptic="light">
+            <i data-lucide="hard-drive" style="width: 13px; height: 13px;"></i> C:\ Drive
+        </button>
+        <button onclick="fetchFiles('C:\\Users\\megat\\Hermes-WebApp')" class="btn btn-secondary btn-sm" style="flex: 1;" data-haptic="light">
+            <i data-lucide="folder-git-2" style="width: 13px; height: 13px;"></i> Hermes Root
+        </button>
     </div>
 </div>
 
@@ -1276,18 +1691,14 @@
 <div id="mod-kanban" class="module-overlay" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="module-header">
         <span class="module-title">Kanban Task Board</span>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px;" id="kanban-list">
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Refresh to load kanban.db</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px;">
-        <button onclick="fetchKanbanTasks(this)" class="btn-action" style="width: 100%; padding: 14px;">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Sync Kanban DB
-            </div>
+        <button onclick="fetchKanbanTasks(this)" class="btn btn-secondary btn-lg btn-block" data-haptic="medium">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Sync Kanban DB
         </button>
     </div>
 </div>
@@ -1299,7 +1710,7 @@
             <span class="module-title">Multi-Agent Swarm Control Panel</span>
             <span id="swarm-ws-status" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800; text-transform: uppercase;">WS Connected</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; min-height: 0;">
         
@@ -1316,7 +1727,9 @@
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <input type="text" id="swarm-agent-command" aria-label="Swarm agent command" placeholder="Custom Command (Optional Python/Shell command)" autocomplete="off" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #fff; border-radius: 6px; padding: 8px 12px; font-size: 11px; font-family: monospace; outline: none;">
-                        <button type="submit" class="btn-action" style="padding: 8px 16px; background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.4); color: #d8b4fe;">⚡ Launch Agent</button>
+                        <button type="submit" class="btn btn-purple btn-sm" data-haptic="medium">
+                            <i data-lucide="zap" style="width: 12px; height: 12px;"></i> Launch Agent
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1328,7 +1741,9 @@
             <div class="particle-container"></div>
             <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4);">Agent Swarm Matrix</div>
-                <button onclick="fetchSwarmAgents()" class="btn-action" style="padding: 4px 8px; font-size: 8px;">Refresh Matrix</button>
+                <button onclick="fetchSwarmAgents()" class="btn btn-xs btn-ghost" data-haptic="light">
+                    <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Refresh Matrix
+                </button>
             </div>
             <div id="swarm-agents-list" style="position: relative; z-index: 2; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
                 <div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 11px; padding: 20px;">No agents running in swarm</div>
@@ -1357,25 +1772,17 @@
             <span class="module-title">Network Scanner</span>
             <span id="netscan-count" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800;">0 connections</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; overflow-y: auto; padding: 16px;" id="netscan-list">
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Scan to enumerate network connections</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px; display: flex; gap: 8px;">
-        <button onclick="fetchNetScan()" class="btn-action" style="flex: 1; padding: 14px;">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <i data-lucide="radar" style="width: 12px; height: 12px;"></i> Scan Ports
-            </div>
+        <button onclick="fetchNetScan()" class="btn btn-cyan btn-md" style="flex: 1;" data-haptic="medium">
+            <i data-lucide="radar" style="width: 13px; height: 13px;"></i> Scan Ports
         </button>
-        <button onclick="fetchEnvInfo()" class="btn-action" style="flex: 1; padding: 14px;">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <i data-lucide="cpu" style="width: 12px; height: 12px;"></i> Sys Fingerprint
-            </div>
+        <button onclick="fetchEnvInfo()" class="btn btn-secondary btn-md" style="flex: 1;" data-haptic="medium">
+            <i data-lucide="cpu" style="width: 13px; height: 13px;"></i> Sys Fingerprint
         </button>
     </div>
 </div>
@@ -1387,18 +1794,14 @@
             <span class="module-title">Threat Sentinel</span>
             <span id="threat-verdict" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800; text-transform: uppercase;">STANDBY</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;" id="threat-results">
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Scan to run threat heuristics</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px;">
-        <button onclick="fetchThreatScan()" class="btn-action" style="width: 100%; padding: 14px;">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <i data-lucide="scan-line" style="width: 12px; height: 12px;"></i> Run Threat Scan
-            </div>
+        <button onclick="fetchThreatScan()" class="btn btn-danger btn-lg btn-block" data-haptic="heavy">
+            <i data-lucide="scan-line" style="width: 15px; height: 15px;"></i> Run Threat Scan
         </button>
     </div>
 </div>
@@ -1410,18 +1813,22 @@
             <span class="module-title">Code Editor</span>
             <span id="editor-filename" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800; font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">No file loaded</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 0;">
         <div style="display: flex; gap: 8px; flex-shrink: 0;">
             <input type="text" id="editor-filepath" autocomplete="off" spellcheck="false" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #fff; border-radius: 8px; padding: 10px 14px; font-size: 11px; font-family: 'JetBrains Mono', monospace; outline: none;" placeholder="File path (e.g. C:\Users\megat\Hermes-WebApp\PROJECT.md)" aria-label="File path input">
-            <button onclick="loadFileToEditor()" class="btn-action" style="padding: 10px 14px; font-size: 10px;"><i data-lucide="file-input" style="width: 12px; height: 12px;"></i> Load</button>
+            <button onclick="loadFileToEditor()" class="btn btn-secondary btn-sm" data-haptic="light">
+                <i data-lucide="file-input" style="width: 12px; height: 12px;"></i> Load
+            </button>
         </div>
         <div style="flex: 1; position: relative; display: flex; flex-direction: column; min-height: 0;">
             <textarea id="editor-content" aria-label="Editor content" spellcheck="false" style="flex: 1; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #a3e635; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 12px; resize: none; outline: none; line-height: 1.5;" placeholder="// Select a file from File Explorer or enter path above to edit..."></textarea>
         </div>
         <div style="display: flex; gap: 8px; flex-shrink: 0; padding-bottom: 16px;">
-            <button onclick="saveFileFromEditor()" class="btn-primary btn-action" style="flex: 1; padding: 12px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Changes</button>
+            <button onclick="saveFileFromEditor()" class="btn btn-primary btn-lg btn-block" data-haptic="medium">
+                <i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Changes
+            </button>
         </div>
     </div>
 </div>
@@ -1433,18 +1840,14 @@
             <span class="module-title">Services Manager</span>
             <span id="services-count" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800;">0 active</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; overflow-y: auto; padding: 16px;" id="services-list">
         <div style="text-align: center; color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 40px;">Tap Refresh to scan OS services</div>
     </div>
     <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; padding-bottom: 24px;">
-        <button onclick="fetchServicesList()" class="btn-action" style="width: 100%; padding: 14px;">
-            <div class="glass-spotlight"></div>
-            <div class="particle-container"></div>
-            <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Scan Services
-            </div>
+        <button onclick="fetchServicesList()" class="btn btn-secondary btn-lg btn-block" data-haptic="medium">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Scan Services
         </button>
     </div>
 </div>
@@ -1456,20 +1859,24 @@
             <span class="module-title">Forensics Suite</span>
             <span id="forensics-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800;">ACTIVE SECURE</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <!-- Sub-tab headers -->
     <div style="display: flex; gap: 4px; padding: 12px 16px 0 16px; border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;">
-        <button onclick="switchForensicsTab('fim')" id="tab-btn-fim" class="btn-action" style="flex: 1; padding: 8px; font-size: 10px; border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.08); color: #fff;"><i data-lucide="fingerprint" style="width: 12px; height: 12px;"></i> FIM Integrity</button>
-        <button onclick="switchForensicsTab('firewall')" id="tab-btn-firewall" class="btn-action" style="flex: 1; padding: 8px; font-size: 10px; border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.4);"><i data-lucide="shield" style="width: 12px; height: 12px;"></i> Firewall Rules</button>
-        <button onclick="switchForensicsTab('events')" id="tab-btn-events" class="btn-action" style="flex: 1; padding: 8px; font-size: 10px; border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.4);"><i data-lucide="file-text" style="width: 12px; height: 12px;"></i> Sec Logs</button>
+        <button onclick="switchForensicsTab('fim')" id="tab-btn-fim" class="btn btn-sm btn-secondary" style="flex: 1; border-radius: 6px 6px 0 0;" data-haptic="selection"><i data-lucide="fingerprint" style="width: 12px; height: 12px;"></i> FIM Integrity</button>
+        <button onclick="switchForensicsTab('firewall')" id="tab-btn-firewall" class="btn btn-sm btn-ghost" style="flex: 1; border-radius: 6px 6px 0 0; color: rgba(255,255,255,0.4);" data-haptic="selection"><i data-lucide="shield" style="width: 12px; height: 12px;"></i> Firewall Rules</button>
+        <button onclick="switchForensicsTab('events')" id="tab-btn-events" class="btn btn-sm btn-ghost" style="flex: 1; border-radius: 6px 6px 0 0; color: rgba(255,255,255,0.4);" data-haptic="selection"><i data-lucide="file-text" style="width: 12px; height: 12px;"></i> Sec Logs</button>
     </div>
 
     <!-- FIM Panel -->
     <div id="forensics-panel-fim" style="flex: 1; display: flex; flex-direction: column; padding: 16px; gap: 10px; overflow-y: auto;">
         <div style="display: flex; gap: 8px;">
-            <button onclick="createFimBaseline()" class="btn-action" style="flex: 1; padding: 10px; font-size: 10px;"><i data-lucide="save" style="width: 12px; height: 12px;"></i> Create Hash Baseline</button>
-            <button onclick="fetchFimScan()" class="btn-primary btn-action" style="flex: 1; padding: 10px; font-size: 10px;"><i data-lucide="scan" style="width: 12px; height: 12px;"></i> Scan SHA-256 Hashes</button>
+            <button onclick="createFimBaseline()" class="btn btn-secondary btn-md" style="flex: 1;" data-haptic="medium">
+                <i data-lucide="save" style="width: 13px; height: 13px;"></i> Create Hash Baseline
+            </button>
+            <button onclick="fetchFimScan()" class="btn btn-cyan btn-md" style="flex: 1;" data-haptic="medium">
+                <i data-lucide="scan" style="width: 13px; height: 13px;"></i> Scan SHA-256 Hashes
+            </button>
         </div>
         <div id="fim-results" style="flex: 1; overflow-y: auto;">
             <div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 11px; margin-top: 30px;">Tap 'Scan SHA-256 Hashes' to verify file integrity</div>
@@ -1480,7 +1887,9 @@
     <div id="forensics-panel-firewall" style="flex: 1; display: none; flex-direction: column; padding: 16px; gap: 10px; overflow-y: auto;">
         <div style="display: flex; gap: 8px;">
             <input type="text" id="firewall-ip-input" aria-label="Firewall IP input" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #fff; border-radius: 8px; padding: 8px 12px; font-size: 10px;" placeholder="Enter IP to block (e.g. 192.168.1.100)">
-            <button onclick="addFirewallBlockRule()" class="btn-action" style="padding: 8px 12px; font-size: 10px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.4);"><i data-lucide="shield-x" style="width: 12px; height: 12px;"></i> Block IP</button>
+            <button onclick="addFirewallBlockRule()" class="btn btn-danger btn-sm" data-haptic="heavy">
+                <i data-lucide="shield-x" style="width: 12px; height: 12px;"></i> Block IP
+            </button>
         </div>
         <div id="firewall-rules-list" style="flex: 1; overflow-y: auto;">
             <div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 11px; margin-top: 30px;">Loading Windows Firewall rules...</div>
@@ -1502,12 +1911,12 @@
             <span class="module-title">Workflow & DAG Engine</span>
             <span id="workflow-badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800;">CRON ENGINE READY</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <!-- Sub-tab headers -->
     <div style="display: flex; gap: 4px; padding: 12px 16px 0 16px; border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;">
-        <button onclick="switchWorkflowTab('scheduler')" id="tab-btn-wf-scheduler" class="btn-action" style="flex: 1; padding: 8px; font-size: 10px; border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.08); color: #fff;"><i data-lucide="clock" style="width: 12px; height: 12px;"></i> Cron Scheduler</button>
-        <button onclick="switchWorkflowTab('dag')" id="tab-btn-wf-dag" class="btn-action" style="flex: 1; padding: 8px; font-size: 10px; border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.4);"><i data-lucide="network" style="width: 12px; height: 12px;"></i> Agent DAG Tree</button>
+        <button onclick="switchWorkflowTab('scheduler')" id="tab-btn-wf-scheduler" class="btn btn-sm btn-secondary" style="flex: 1; border-radius: 6px 6px 0 0;" data-haptic="selection"><i data-lucide="clock" style="width: 12px; height: 12px;"></i> Cron Scheduler</button>
+        <button onclick="switchWorkflowTab('dag')" id="tab-btn-wf-dag" class="btn btn-sm btn-ghost" style="flex: 1; border-radius: 6px 6px 0 0; color: rgba(255,255,255,0.4);" data-haptic="selection"><i data-lucide="network" style="width: 12px; height: 12px;"></i> Agent DAG Tree</button>
     </div>
 
     <!-- Scheduler Panel -->
@@ -1519,7 +1928,9 @@
             </div>
             <div style="display: flex; gap: 8px;">
                 <input type="text" id="wf-command" aria-label="Workflow command" placeholder="CLI Command (e.g. python scripts/sync.py)" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #fff; border-radius: 6px; padding: 8px 10px; font-size: 10px;">
-                <button onclick="scheduleNewWorkflowTask()" class="btn-primary btn-action" style="padding: 8px 14px; font-size: 10px;"><i data-lucide="plus" style="width: 12px; height: 12px;"></i> Add Task</button>
+                <button onclick="scheduleNewWorkflowTask()" class="btn btn-purple btn-sm" data-haptic="medium">
+                    <i data-lucide="plus" style="width: 12px; height: 12px;"></i> Add Task
+                </button>
             </div>
         </div>
         <div id="workflow-tasks-list" style="flex: 1; overflow-y: auto;">
@@ -1542,12 +1953,12 @@
             <span class="module-title">Obsidian Knowledge Graph</span>
             <span id="obs-graph-badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800;">2,708 NOTES LINKED</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <!-- Sub-tab headers -->
     <div style="display: flex; gap: 4px; padding: 12px 16px 0 16px; border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;">
-        <button onclick="switchObsGraphTab('canvas')" id="tab-btn-obs-canvas" class="btn-action" style="flex: 1; padding: 8px; font-size: 10px; border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.08); color: #fff;"><i data-lucide="git-fork" style="width: 12px; height: 12px;"></i> Graph Visualizer</button>
-        <button onclick="switchObsGraphTab('search')" id="tab-btn-obs-search" class="btn-action" style="flex: 1; padding: 8px; font-size: 10px; border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.4);"><i data-lucide="search" style="width: 12px; height: 12px;"></i> Vault Search</button>
+        <button onclick="switchObsGraphTab('canvas')" id="tab-btn-obs-canvas" class="btn btn-sm btn-secondary" style="flex: 1; border-radius: 6px 6px 0 0;" data-haptic="selection"><i data-lucide="git-fork" style="width: 12px; height: 12px;"></i> Graph Visualizer</button>
+        <button onclick="switchObsGraphTab('search')" id="tab-btn-obs-search" class="btn btn-sm btn-ghost" style="flex: 1; border-radius: 6px 6px 0 0; color: rgba(255,255,255,0.4);" data-haptic="selection"><i data-lucide="search" style="width: 12px; height: 12px;"></i> Vault Search</button>
     </div>
 
     <!-- Canvas Panel -->
@@ -1561,7 +1972,9 @@
     <div id="obs-panel-search" style="flex: 1; display: none; flex-direction: column; padding: 16px; gap: 10px; overflow-y: auto;">
         <div style="display: flex; gap: 8px;">
             <input type="text" id="obs-search-input" aria-label="Obsidian search input" placeholder="Search vault notes (e.g. Hermes, GangNiaga)..." style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #fff; border-radius: 8px; padding: 10px 14px; font-size: 11px;">
-            <button onclick="searchObsidianVaultNotes()" class="btn-primary btn-action" style="padding: 10px 16px; font-size: 10px;"><i data-lucide="search" style="width: 12px; height: 12px;"></i> Search</button>
+            <button onclick="searchObsidianVaultNotes()" class="btn btn-cyan btn-md" data-haptic="medium">
+                <i data-lucide="search" style="width: 13px; height: 13px;"></i> Search
+            </button>
         </div>
         <div id="obs-search-results" style="flex: 1; overflow-y: auto;">
             <div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 11px; margin-top: 30px;">Enter query to search local vault notes</div>
@@ -1576,7 +1989,7 @@
             <span class="module-title">Social Media Hub</span>
             <span id="social-badge" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800; letter-spacing: 0.05em;">WEBMCP READY</span>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
     <div style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; max-width: 900px; margin: 0 auto; width: 100%;">
         <!-- Omnichannel Autopilot Generator -->
@@ -1591,7 +2004,7 @@
             
             <div style="display: flex; gap: 10px;">
                 <input type="text" id="omni-topic-input" aria-label="Omnichannel viral topic input" placeholder="Masukkan Topik / Idea Viral (e.g. 5 Rahsia Automasi Bisnes 2026)..." style="flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 12px 14px; border-radius: 6px; font-size: 12px;">
-                <button type="button" onclick="generateOmniSuite()" class="btn-primary" style="padding: 10px 18px; display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #a855f7, #6366f1); border: none; color: #fff; font-weight: 700; border-radius: 6px; cursor: pointer;">
+                <button type="button" onclick="generateOmniSuite()" class="btn btn-purple btn-md" data-haptic="medium">
                     <i data-lucide="wand-2" style="width: 14px; height: 14px;"></i> Generate All
                 </button>
             </div>
@@ -1635,10 +2048,10 @@
 
             <!-- Action Buttons -->
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
-                <button type="button" onclick="actionOmniDraft('reject')" class="btn-action" style="padding: 8px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;">
+                <button type="button" onclick="actionOmniDraft('reject')" class="btn btn-danger btn-sm" data-haptic="heavy">
                     <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> Reject
                 </button>
-                <button type="button" onclick="actionOmniDraft('approve')" class="btn-primary" style="padding: 8px 20px; background: rgba(34, 197, 94, 0.25); border: 1px solid rgba(34, 197, 94, 0.6); color: #4ade80; font-weight: 700;">
+                <button type="button" onclick="actionOmniDraft('approve')" class="btn btn-emerald btn-sm" data-haptic="medium">
                     <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Approve & Broadcast
                 </button>
             </div>
@@ -1648,7 +2061,9 @@
         <div class="glass" style="padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto;">
             <div style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                 <span>Omnichannel Drafts History</span>
-                <button onclick="loadOmniDrafts()" class="btn-action" style="font-size: 9px; padding: 2px 6px;"><i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Refresh</button>
+                <button onclick="loadOmniDrafts()" class="btn btn-xs btn-ghost" data-haptic="light">
+                    <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Refresh
+                </button>
             </div>
             <div id="omni-drafts-list" style="display: flex; flex-direction: column; gap: 8px;">
                 <div style="text-align: center; color: rgba(255,255,255,0.3); font-size: 11px; margin-top: 10px;">Click generate to create your first omnichannel package.</div>
@@ -1669,27 +2084,27 @@
                 <span style="background: rgba(239, 159, 189, 0.15); color: #ef9fbd; border: 1px solid rgba(239, 159, 189, 0.4); font-size: 8px; padding: 2px 8px; border-radius: 3px; font-weight: 800; letter-spacing: 0.05em; margin-left: 6px;">ALL-IN-1 MISSION CONTROL</span>
             </div>
         </div>
-        <button onclick="closeAllModules()" class="btn-action" style="padding: 6px;" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="closeAllModules()" class="btn-close" aria-label="Close module"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></button>
     </div>
 
     <!-- Navigation Tabs Inside Module (Mobile-First Touch Scroller) -->
     <div class="dohnut-tabs-nav" style="display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.6); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; touch-action: pan-x; flex-shrink: 0;">
-        <button id="btn-dohnut-store" onclick="switchDohnutTab('store')" class="btn-primary" style="font-size: 11px; padding: 6px 14px; background: rgba(239, 159, 189, 0.2); border: 1px solid rgba(239, 159, 189, 0.5); color: #ef9fbd; border-radius: 6px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+        <button id="btn-dohnut-store" onclick="switchDohnutTab('store')" class="btn btn-sm btn-pink" style="flex-shrink: 0;" data-haptic="medium">
             <i data-lucide="store" style="width: 12px; height: 12px;"></i> Store &amp; Baking
         </button>
-        <button id="btn-dohnut-social" onclick="switchDohnutTab('social')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+        <button id="btn-dohnut-social" onclick="switchDohnutTab('social')" class="btn btn-sm btn-outline" style="flex-shrink: 0;" data-haptic="light">
             <i data-lucide="share-2" style="width: 12px; height: 12px;"></i> Social Autopilot
         </button>
-        <button id="btn-dohnut-swarm" onclick="switchDohnutTab('swarm')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+        <button id="btn-dohnut-swarm" onclick="switchDohnutTab('swarm')" class="btn btn-sm btn-outline" style="flex-shrink: 0;" data-haptic="light">
             <i data-lucide="cpu" style="width: 12px; height: 12px;"></i> Agent Swarm
         </button>
-        <button id="btn-dohnut-labs" onclick="switchDohnutTab('labs')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+        <button id="btn-dohnut-labs" onclick="switchDohnutTab('labs')" class="btn btn-sm btn-outline" style="flex-shrink: 0;" data-haptic="light">
             <i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> AI Labs (10)
         </button>
-        <button id="btn-dohnut-catalog" onclick="switchDohnutTab('catalog')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+        <button id="btn-dohnut-catalog" onclick="switchDohnutTab('catalog')" class="btn btn-sm btn-outline" style="flex-shrink: 0;" data-haptic="light">
             <i data-lucide="layout-grid" style="width: 12px; height: 12px;"></i> Katalog Live
         </button>
-        <button id="btn-dohnut-missions" onclick="switchDohnutTab('missions')" class="btn-action" style="font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
+        <button id="btn-dohnut-missions" onclick="switchDohnutTab('missions')" class="btn btn-sm btn-outline" style="flex-shrink: 0;" data-haptic="light">
             <i data-lucide="target" style="width: 12px; height: 12px; color: #a855f7;"></i> Mission Control
         </button>
     </div>
@@ -1727,7 +2142,9 @@
             <div class="glass" style="padding: 16px;">
                 <div style="font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
                     <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="clock" style="width: 14px; height: 14px; color: #ef9fbd;"></i> Live Baking & Glazing Kanban</span>
-                    <button onclick="fetchDohnutData()" class="btn-action" style="font-size: 8px; padding: 2px 6px;"><i data-lucide="refresh-cw" style="width: 8px; height: 8px;"></i> Sync</button>
+                    <button onclick="fetchDohnutData()" class="btn btn-xs btn-ghost" data-haptic="light">
+                        <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Sync
+                    </button>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px;">
                     <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
@@ -1771,7 +2188,7 @@
             <div class="glass" style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 13px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px;">
-                        <span>📱</span> Doh-Nut 6-Platform Viral Generator
+                        <i data-lucide="share-2" style="width: 14px; height: 14px; color: #ef9fbd;"></i> Doh-Nut 6-Platform Viral Generator
                     </div>
                     <span style="font-size: 8px; padding: 2px 8px; background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 4px;">PROFILE 50 SYNCED 🟢</span>
                 </div>
@@ -1786,7 +2203,7 @@
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <input id="reach-ingest-input" type="url" aria-label="Agent-Reach Internet Ingestion Input" placeholder="Tampal link YouTube / Web artikel / Resipi viral..." style="flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 10px;">
-                        <button type="button" onclick="ingestReachToSocial()" id="btn-reach-ingest" class="btn-action" style="padding: 8px 14px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; font-weight: 800; border-radius: 6px; cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 4px;">
+                        <button type="button" onclick="ingestReachToSocial()" id="btn-reach-ingest" class="btn btn-sm btn-cyan" data-haptic="medium">
                             <i data-lucide="download-cloud" style="width: 12px; height: 12px;"></i> Ingest & Draft
                         </button>
                     </div>
@@ -1795,21 +2212,21 @@
 
                 <div style="display: flex; gap: 8px;">
                     <input id="dohnut-social-input" type="text" aria-label="Doh-Nut promo idea input" placeholder="Masukkan idea promosi (e.g. Promo Combo Jumaat Donut Panas)..." style="flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 11px;">
-                    <button onclick="generateDohnutSocial()" class="btn-primary" style="padding: 8px 16px; background: linear-gradient(135deg, #ef9fbd, #297abe); border: none; color: #07334f; font-weight: 800; border-radius: 6px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Generate 6-Suite
+                    <button onclick="generateDohnutSocial()" class="btn btn-pink btn-md" data-haptic="medium">
+                        <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i> Generate 6-Suite
                     </button>
                 </div>
                 <!-- 1-TAP KHAIRUL AMING FORMULA BUTTONS -->
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                     <span style="font-size: 9px; font-weight: 800; color: #ef9fbd; text-transform: uppercase; letter-spacing: 0.05em;">Proven KA Formulas:</span>
-                    <button type="button" onclick="applyKAFormula('struggle_mastery')" class="btn-action" style="font-size: 9px; padding: 4px 10px; border-radius: 6px; background: rgba(239, 159, 189, 0.15); border: 1px solid rgba(239, 159, 189, 0.4); color: #ef9fbd; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                        🍳 KA Recipe Story
+                    <button type="button" onclick="applyKAFormula('struggle_mastery')" class="btn btn-xs btn-outline btn-pink" data-haptic="light">
+                        <i data-lucide="chef-hat" style="width: 11px; height: 11px;"></i> KA Recipe Story
                     </button>
-                    <button type="button" onclick="applyKAFormula('asmr_crunch')" class="btn-action" style="font-size: 9px; padding: 4px 10px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                        🍩 ASMR Glaze Drip
+                    <button type="button" onclick="applyKAFormula('asmr_crunch')" class="btn btn-xs btn-outline btn-amber" data-haptic="light">
+                        <i data-lucide="cookie" style="width: 11px; height: 11px;"></i> ASMR Glaze Drip
                     </button>
-                    <button type="button" onclick="applyKAFormula('customer_craving')" class="btn-action" style="font-size: 9px; padding: 4px 10px; border-radius: 6px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                        📦 Sold-Out FOMO
+                    <button type="button" onclick="applyKAFormula('customer_craving')" class="btn btn-xs btn-outline btn-danger" data-haptic="light">
+                        <i data-lucide="package" style="width: 11px; height: 11px;"></i> Sold-Out FOMO
                     </button>
                 </div>
             </div>
@@ -1867,8 +2284,8 @@
                         <div style="font-size: 10px; font-weight: 700; color: #4ade80; display: flex; justify-content: space-between; align-items: center;">
                             <span>🎵 TikTok (@thisisdohnut)</span>
                             <div style="display: flex; gap: 4px;">
-                                <button onclick="publishDohnutSocial('tiktok')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
-                                <button onclick="scheduleDohnutPost('tiktok')" class="btn-action" style="font-size: 8px; padding: 1px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">🕒 Schedule</button>
+                                <button onclick="publishDohnutSocial('tiktok')" class="btn btn-xs btn-secondary" data-haptic="medium">1-Tap Post</button>
+                                <button onclick="scheduleDohnutPost('tiktok')" class="btn btn-xs btn-outline btn-cyan" data-haptic="light"><i data-lucide="clock" style="width: 10px; height: 10px;"></i> Schedule</button>
                             </div>
                         </div>
                         <div id="dn-preview-tiktok" style="font-size: 9px; color: rgba(255,255,255,0.8); margin-top: 6px; white-space: pre-wrap; max-height: 100px; overflow-y: auto;"></div>
@@ -1877,8 +2294,8 @@
                         <div style="font-size: 10px; font-weight: 700; color: #f472b6; display: flex; justify-content: space-between; align-items: center;">
                             <span>📸 Instagram Reels</span>
                             <div style="display: flex; gap: 4px;">
-                                <button onclick="publishDohnutSocial('instagram')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
-                                <button onclick="scheduleDohnutPost('instagram')" class="btn-action" style="font-size: 8px; padding: 1px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">🕒 Schedule</button>
+                                <button onclick="publishDohnutSocial('instagram')" class="btn btn-xs btn-secondary" data-haptic="medium">1-Tap Post</button>
+                                <button onclick="scheduleDohnutPost('instagram')" class="btn btn-xs btn-outline btn-cyan" data-haptic="light"><i data-lucide="clock" style="width: 10px; height: 10px;"></i> Schedule</button>
                             </div>
                         </div>
                         <div id="dn-preview-instagram" style="font-size: 9px; color: rgba(255,255,255,0.8); margin-top: 6px; white-space: pre-wrap; max-height: 100px; overflow-y: auto;"></div>
@@ -1887,8 +2304,8 @@
                         <div style="font-size: 10px; font-weight: 700; color: #60a5fa; display: flex; justify-content: space-between; align-items: center;">
                             <span>📘 Facebook Post</span>
                             <div style="display: flex; gap: 4px;">
-                                <button onclick="publishDohnutSocial('facebook')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
-                                <button onclick="scheduleDohnutPost('facebook')" class="btn-action" style="font-size: 8px; padding: 1px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">🕒 Schedule</button>
+                                <button onclick="publishDohnutSocial('facebook')" class="btn btn-xs btn-secondary" data-haptic="medium">1-Tap Post</button>
+                                <button onclick="scheduleDohnutPost('facebook')" class="btn btn-xs btn-outline btn-cyan" data-haptic="light"><i data-lucide="clock" style="width: 10px; height: 10px;"></i> Schedule</button>
                             </div>
                         </div>
                         <div id="dn-preview-facebook" style="font-size: 9px; color: rgba(255,255,255,0.8); margin-top: 6px; white-space: pre-wrap; max-height: 100px; overflow-y: auto;"></div>
@@ -1897,8 +2314,8 @@
                         <div style="font-size: 10px; font-weight: 700; color: #38bdf8; display: flex; justify-content: space-between; align-items: center;">
                             <span>💬 Threads Debate</span>
                             <div style="display: flex; gap: 4px;">
-                                <button onclick="publishDohnutSocial('threads')" class="btn-action" style="font-size: 8px; padding: 1px 6px;">1-Tap Post</button>
-                                <button onclick="scheduleDohnutPost('threads')" class="btn-action" style="font-size: 8px; padding: 1px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">🕒 Schedule</button>
+                                <button onclick="publishDohnutSocial('threads')" class="btn btn-xs btn-secondary" data-haptic="medium">1-Tap Post</button>
+                                <button onclick="scheduleDohnutPost('threads')" class="btn btn-xs btn-outline btn-cyan" data-haptic="light"><i data-lucide="clock" style="width: 10px; height: 10px;"></i> Schedule</button>
                             </div>
                         </div>
                         <div id="dn-preview-threads" style="font-size: 9px; color: rgba(255,255,255,0.8); margin-top: 6px; white-space: pre-wrap; max-height: 100px; overflow-y: auto;"></div>
@@ -1913,21 +2330,21 @@
                         <i data-lucide="clock" style="width: 14px; height: 14px; color: #38bdf8;"></i>
                         <span style="font-size: 11px; font-weight: 800; color: #38bdf8; letter-spacing: 0.05em; text-transform: uppercase;">DURABLE SCHEDULED QUEUE (SQLITE WAL ENGINE)</span>
                     </div>
-                    <button onclick="fetchScheduledJobs()" class="btn-action" style="font-size: 8px; padding: 2px 8px; border-radius: 4px;">
-                        <i data-lucide="refresh-cw" style="width: 8px; height: 8px;"></i> Refresh
+                    <button onclick="fetchScheduledJobs()" class="btn btn-xs btn-ghost" data-haptic="light">
+                        <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Refresh
                     </button>
                 </div>
                 <!-- 1-TAP PEAK VIRAL HOURS (MALAYSIA AUDIENCE) -->
                 <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; background: rgba(0,0,0,0.4); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
                     <span style="font-size: 8px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">Peak Hours MY:</span>
-                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 11, 45, 'Lunch Rush (11:45 AM)')" class="btn-action" style="font-size: 8px; padding: 3px 8px; border-radius: 4px; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); display: flex; align-items: center; gap: 4px;">
-                        🥪 11:45 AM (Lunch)
+                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 11, 45, 'Lunch Rush (11:45 AM)')" class="btn btn-xs btn-outline btn-amber" data-haptic="light">
+                        <i data-lucide="sun" style="width: 11px; height: 11px;"></i> 11:45 AM (Lunch)
                     </button>
-                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 16, 30, 'Tea Break (4:30 PM)')" class="btn-action" style="font-size: 8px; padding: 3px 8px; border-radius: 4px; color: #ef9fbd; border-color: rgba(239, 159, 189, 0.4); display: flex; align-items: center; gap: 4px;">
-                        🍩 04:30 PM (Minum Petang)
+                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 16, 30, 'Tea Break (4:30 PM)')" class="btn btn-xs btn-outline btn-pink" data-haptic="light">
+                        <i data-lucide="coffee" style="width: 11px; height: 11px;"></i> 04:30 PM (Tea)
                     </button>
-                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 21, 15, 'Supper Craving (9:15 PM)')" class="btn-action" style="font-size: 8px; padding: 3px 8px; border-radius: 4px; color: #c084fc; border-color: rgba(192, 132, 252, 0.4); display: flex; align-items: center; gap: 4px;">
-                        🌙 09:15 PM (Lepas Isyak)
+                    <button type="button" onclick="scheduleForPeakSlot('tiktok', 21, 15, 'Supper Craving (9:15 PM)')" class="btn btn-xs btn-outline btn-purple" data-haptic="light">
+                        <i data-lucide="moon" style="width: 11px; height: 11px;"></i> 09:15 PM (Supper)
                     </button>
                 </div>
                 <div id="dohnut-scheduled-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto;">
@@ -1947,9 +2364,9 @@
             <!-- Quick Action Toolbar -->
             <div class="glass" style="padding: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                 <span style="font-size: 10px; color: rgba(255,255,255,0.5); margin-right: 4px;">Quick Actions:</span>
-                <button onclick="execQuickAction('test')" class="btn-action" style="font-size: 10px; padding: 6px 12px;"><i data-lucide="check-circle" style="width: 12px; height: 12px; color: #4ade80;"></i> Run Bun 62/62</button>
-                <button onclick="execQuickAction('obsidian')" class="btn-action" style="font-size: 10px; padding: 6px 12px;"><i data-lucide="book-open" style="width: 12px; height: 12px; color: #c084fc;"></i> Sync Vault</button>
-                <button onclick="execQuickAction('zombies')" class="btn-action" style="font-size: 10px; padding: 6px 12px;"><i data-lucide="shield-alert" style="width: 12px; height: 12px; color: #f87171;"></i> Kill Zombie Ports</button>
+                <button onclick="execQuickAction('test')" class="btn btn-sm btn-secondary" data-haptic="medium"><i data-lucide="check-circle" style="width: 12px; height: 12px; color: #4ade80;"></i> Run Bun 62/62</button>
+                <button onclick="execQuickAction('obsidian')" class="btn btn-sm btn-secondary" data-haptic="medium"><i data-lucide="book-open" style="width: 12px; height: 12px; color: #c084fc;"></i> Sync Vault</button>
+                <button onclick="execQuickAction('zombies')" class="btn btn-sm btn-secondary" data-haptic="heavy"><i data-lucide="shield-alert" style="width: 12px; height: 12px; color: #f87171;"></i> Kill Zombie Ports</button>
             </div>
         </div>
 
@@ -2000,7 +2417,9 @@
             <div class="glass" style="padding: 16px;">
                 <div style="font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                     <span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="store" style="width: 14px; height: 14px; color: #ef9fbd;"></i> Katalog Live — Produksi</span>
-                    <button onclick="fetchDohnutCatalog()" class="btn-action" style="min-height: 32px; font-size: 10px; padding: 6px 12px;"><i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Sync</button>
+                    <button onclick="fetchDohnutCatalog()" class="btn btn-xs btn-ghost" data-haptic="light">
+                        <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> Sync
+                    </button>
                 </div>
                 <div style="font-size: 9px; color: rgba(255,255,255,0.5);">Data sebenar dari dowgnut-custom.vercel.app. Tekan Sync untuk muat semula.</div>
             </div>
@@ -2093,9 +2512,58 @@
         safeTg('ready');
     }
 
-    function haptic(type) {
-        safeTg('HapticFeedback.impactOccurred', type || 'light');
+    // Enterprise Tactile Feedback Engine ($5M Haptics & Audio)
+    let _audioCtx = null;
+    function playTactileClick(freq, duration, gainVal) {
+        try {
+            if (typeof window === 'undefined') return;
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            if (!_audioCtx) _audioCtx = new AudioCtx();
+            if (_audioCtx.state === 'suspended') {
+                _audioCtx.resume().catch(function() {});
+            }
+            const osc = _audioCtx.createOscillator();
+            const gain = _audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq || 1200, _audioCtx.currentTime);
+            gain.gain.setValueAtTime(gainVal || 0.04, _audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, _audioCtx.currentTime + (duration || 0.015));
+            osc.connect(gain);
+            gain.connect(_audioCtx.destination);
+            osc.start();
+            osc.stop(_audioCtx.currentTime + (duration || 0.015));
+        } catch(e) {}
     }
+
+    function haptic(type) {
+        const ok = safeTg('HapticFeedback.impactOccurred', type || 'light');
+        if (!ok && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+            try { navigator.vibrate(type === 'heavy' ? 22 : type === 'medium' ? 14 : 6); } catch(e) {}
+        }
+        playTactileClick(type === 'heavy' ? 600 : type === 'medium' ? 900 : 1300, 0.018, 0.035);
+    }
+
+    function hapticNotify(type) {
+        const ok = safeTg('HapticFeedback.notificationOccurred', type || 'success');
+        if (!ok && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+            try { navigator.vibrate([12, 40, 12]); } catch(e) {}
+        }
+        playTactileClick(800, 0.03, 0.05);
+    }
+
+    // Universal Button Touch & Click Haptics Dispatcher
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('button, .btn, .btn-action, .dock-item, .macro-tile, .btn-close, .btn-keycap, [role="button"]');
+        if (!btn) return;
+        if (btn.classList.contains('btn-danger') || btn.dataset.haptic === 'heavy') {
+            hapticNotify('warning');
+        } else if (btn.classList.contains('btn-primary') || btn.classList.contains('macro-tile') || btn.dataset.haptic === 'medium') {
+            haptic('medium');
+        } else {
+            haptic('light');
+        }
+    }, { passive: true });
 
     function escapeHtml(text) {
         const div = document.createElement('div');
@@ -2376,7 +2844,7 @@
     }
 
     // Only apply MagicBento to cards/containers with particle containers, NEVER to buttons or controls
-    document.querySelectorAll('.glass:not(button):not(.btn-action):not(.dock-item):not(a):not(input)').forEach(card => new MagicBento(card));
+    document.querySelectorAll('.glass:not(button):not(.btn):not(.btn-action):not(.dock-item):not(.btn-close):not(.btn-keycap):not(.btn-macro-tile):not(a):not(input)').forEach(card => new MagicBento(card));
 
     // ============================================
     // 5. ROTATING TEXT LOGIC (Vanilla JS Port)
@@ -2905,7 +3373,7 @@
                         <span style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</span>
                         <span style="font-size:9px;color:rgba(255,255,255,0.25);font-family:monospace;font-variant-numeric:tabular-nums;">PID:${p.pid} | ${p.mem}MB</span>
                     </div>
-                    <button onclick="killProcess(${p.pid})" class="btn-action" style="padding:6px 12px;flex-shrink:0;">Kill</button>
+                    <button onclick="killProcess(${p.pid})" class="btn btn-xs btn-danger" style="flex-shrink:0;" data-haptic="heavy">Kill</button>
                 </div>
             `).join('') || '<div style="text-align:center;color:rgba(255,255,255,0.2);font-size:11px;margin-top:40px;">No processes</div>';
         } catch (e) {
@@ -3376,7 +3844,7 @@
                         <span style="font-size: 9px; color: rgba(255,255,255,0.4); font-family: monospace;">${escapeHtml(a.task)} (PID: ${a.pid || 'N/A'}${metricsStr})</span>
                     </div>
                     ${a.status === 'running' ? `
-                        <button onclick="event.stopPropagation(); terminateSwarmAgent('${a.id}')" class="btn-action" style="padding: 4px 10px; font-size: 9px; border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">Terminate</button>
+                        <button onclick="event.stopPropagation(); terminateSwarmAgent('${a.id}')" class="btn btn-xs btn-danger" data-haptic="heavy">Terminate</button>
                     ` : ''}
                 </div>
             `;
@@ -4083,7 +4551,7 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
                             <span style="font-size:7px;padding:1px 5px;border-radius:2px;background:${s.status === 'running' ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)'};color:${s.status === 'running' ? '#10b981' : 'rgba(255,255,255,0.4)'};font-weight:700;">${s.status.toUpperCase()}</span>
-                            <button onclick="controlServiceAction('${escapeHtml(s.name)}', '${s.status === 'running' ? 'stop' : 'start'}')" class="btn-action" style="padding:2px 6px;font-size:8px;background:rgba(255,255,255,0.04);">
+                            <button onclick="controlServiceAction('${escapeHtml(s.name)}', '${s.status === 'running' ? 'stop' : 'start'}')" class="btn btn-xs ${s.status === 'running' ? 'btn-danger' : 'btn-emerald'}" data-haptic="medium">
                                 ${s.status === 'running' ? 'Stop' : 'Start'}
                             </button>
                         </div>
@@ -4120,12 +4588,16 @@
             const panel = document.getElementById(`forensics-panel-${t}`);
             if (btn && panel) {
                 if (t === tab) {
-                    btn.style.background = 'rgba(255,255,255,0.08)';
+                    btn.className = 'btn btn-sm btn-secondary';
+                    btn.style.borderRadius = '6px 6px 0 0';
                     btn.style.color = '#fff';
+                    btn.style.background = '';
                     panel.style.display = 'flex';
                 } else {
-                    btn.style.background = 'rgba(255,255,255,0.02)';
+                    btn.className = 'btn btn-sm btn-ghost';
+                    btn.style.borderRadius = '6px 6px 0 0';
                     btn.style.color = 'rgba(255,255,255,0.4)';
+                    btn.style.background = '';
                     panel.style.display = 'none';
                 }
             }
@@ -4294,12 +4766,16 @@
             const panel = document.getElementById(`workflow-panel-${t}`);
             if (btn && panel) {
                 if (t === tab) {
-                    btn.style.background = 'rgba(255,255,255,0.08)';
+                    btn.className = 'btn btn-sm btn-secondary';
+                    btn.style.borderRadius = '6px 6px 0 0';
                     btn.style.color = '#fff';
+                    btn.style.background = '';
                     panel.style.display = 'flex';
                 } else {
-                    btn.style.background = 'rgba(255,255,255,0.02)';
+                    btn.className = 'btn btn-sm btn-ghost';
+                    btn.style.borderRadius = '6px 6px 0 0';
                     btn.style.color = 'rgba(255,255,255,0.4)';
+                    btn.style.background = '';
                     panel.style.display = 'none';
                 }
             }
@@ -4330,7 +4806,7 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
                             <span style="font-size:7px;padding:1px 5px;border-radius:2px;background:rgba(168,85,247,0.15);color:#c084fc;font-weight:700;">ACTIVE</span>
-                            <button onclick="cancelWorkflowTask('${t.id}')" class="btn-action" style="padding:2px 6px;font-size:8px;background:rgba(239,68,68,0.15);color:#ef4444;">
+                            <button onclick="cancelWorkflowTask('${t.id}')" class="btn btn-xs btn-danger" data-haptic="heavy">
                                 Cancel
                             </button>
                         </div>
@@ -4431,12 +4907,16 @@
             const panel = document.getElementById(`obs-panel-${t}`);
             if (btn && panel) {
                 if (t === tab) {
-                    btn.style.background = 'rgba(255,255,255,0.08)';
+                    btn.className = 'btn btn-sm btn-secondary';
+                    btn.style.borderRadius = '6px 6px 0 0';
                     btn.style.color = '#fff';
+                    btn.style.background = '';
                     panel.style.display = 'flex';
                 } else {
-                    btn.style.background = 'rgba(255,255,255,0.02)';
+                    btn.className = 'btn btn-sm btn-ghost';
+                    btn.style.borderRadius = '6px 6px 0 0';
                     btn.style.color = 'rgba(255,255,255,0.4)';
+                    btn.style.background = '';
                     panel.style.display = 'none';
                 }
             }
@@ -4826,7 +5306,8 @@
             grid-template-columns: repeat(3, 1fr) !important;
             gap: 6px !important;
         }
-        .action-launchers-grid .btn-action {
+        .action-launchers-grid .btn-action,
+        .action-launchers-grid .btn-macro-tile {
             min-height: 46px !important;
             padding: 8px 4px !important;
             font-size: 8px !important;
@@ -4836,7 +5317,8 @@
             gap: 8px !important;
             margin-bottom: 24px !important;
         }
-        .quick-actions-grid .btn-action {
+        .quick-actions-grid .btn-action,
+        .quick-actions-grid .btn {
             min-height: 48px !important;
         }
         .agent-stream-card {
@@ -4854,7 +5336,7 @@
 
     /* 6. Touch Targets */
     @media (max-width: 640px) {
-        .btn-action {
+        .btn-action, .btn:not(.btn-xs):not(.btn-keycap) {
             min-height: 40px; /* larger touch target */
         }
         .dock-item {
@@ -5072,7 +5554,7 @@
 
 <script>
     // MagicUI Bento Grid Spotlight Logic (Exclude buttons to maintain high performance)
-    document.querySelectorAll('.glass:not(button):not(.btn-action):not(.dock-item)').forEach(card => {
+    document.querySelectorAll('.glass:not(button):not(.btn):not(.btn-action):not(.dock-item):not(.btn-close):not(.btn-keycap):not(.btn-macro-tile)').forEach(card => {
         card.addEventListener('mousemove', e => {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -5314,12 +5796,12 @@
             if (el) el.style.display = (t === tab) ? 'flex' : 'none';
             if (btn) {
                 if (t === tab) {
-                    btn.className = 'btn-primary';
-                    btn.style.background = 'rgba(239, 159, 189, 0.2)';
-                    btn.style.border = '1px solid rgba(239, 159, 189, 0.5)';
-                    btn.style.color = '#ef9fbd';
+                    btn.className = 'btn btn-sm btn-pink';
+                    btn.style.background = '';
+                    btn.style.border = '';
+                    btn.style.color = '';
                 } else {
-                    btn.className = 'btn-action';
+                    btn.className = 'btn btn-sm btn-outline';
                     btn.style.background = '';
                     btn.style.border = '';
                     btn.style.color = '';
@@ -5735,7 +6217,7 @@
                                 <div style="font-size: 8px; color: rgba(255,255,255,0.5);">📅 ${dt} · Percubaan: ${j.attempts}/${j.max_attempts}</div>
                             </div>
                             ${j.status === 'pending' ? `
-                                <button onclick="cancelScheduledJob('${j.id}')" class="btn-action" style="font-size: 8px; padding: 2px 6px; color: #f87171; border-color: rgba(248, 113, 113, 0.4);">
+                                <button onclick="cancelScheduledJob('${j.id}')" class="btn btn-xs btn-danger" data-haptic="heavy">
                                     Batal
                                 </button>
                             ` : ''}
