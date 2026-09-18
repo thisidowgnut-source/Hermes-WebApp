@@ -21,6 +21,7 @@ class SwarmManager:
         self._lock = threading.Lock()
         self._processes = {}  # agent_id -> subprocess.Popen
         self.agents = {}      # agent_id -> agent dict
+        self.delegations = {} # delegation_id -> delegation dict
         self._load_state()
 
     def _load_state(self):
@@ -65,7 +66,15 @@ class SwarmManager:
         with self._lock:
             self._save_state_unlocked()
 
-    def spawn_agent(self, name: str = None, task: str = None, command: str = None) -> dict:
+    def spawn_agent(
+        self,
+        name: str = None,
+        task: str = None,
+        command: str = None,
+        role: str = None,
+        parent_id: str = None,
+        goal: str = None
+    ) -> dict:
         agent_id = f"agent-{uuid.uuid4().hex[:8]}"
         name = name.strip() if name else f"Subagent-{agent_id}"
         task = task.strip() if task else "Background swarm execution"
@@ -105,7 +114,10 @@ class SwarmManager:
             "created_at": timestamp,
             "finished_at": None,
             "exit_code": None,
-            "logs": [f"[{time_str}] Swarm agent spawned (PID {proc.pid})"]
+            "logs": [f"[{time_str}] Swarm agent spawned (PID {proc.pid})"],
+            "role": role or ("orchestrator" if name and "orchestrator" in name.lower() else "worker"),
+            "parent_id": parent_id,
+            "goal": goal
         }
 
         with self._lock:
@@ -264,5 +276,76 @@ class SwarmManager:
             },
             "agents": agents
         }
+
+    def delegate_goal(
+        self,
+        goal: str,
+        orchestrator_name: str = "Orchestrator-Lead",
+        subtasks: list = None,
+        goal_mode: bool = True
+    ) -> dict:
+        delegation_id = f"del-{uuid.uuid4().hex[:8]}"
+        created_at = datetime.now(timezone.utc).isoformat()
+
+        # Creates or registers the orchestrator agent
+        orch_agent = self.spawn_agent(
+            name=orchestrator_name,
+            task=f"Goal Lead: {goal}",
+            role="orchestrator",
+            parent_id=delegation_id,
+            goal=goal
+        )
+
+        # If subtasks are provided, spawn each subtask agent via spawn_agent linking to parent_id=delegation_id or goal=goal
+        spawned_subtasks_list = []
+        if subtasks:
+            for idx, st in enumerate(subtasks):
+                st_dict = st.model_dump() if hasattr(st, "model_dump") else (st.dict() if hasattr(st, "dict") else dict(st))
+                st_role = st_dict.get("role") or "worker"
+                st_name = st_dict.get("name") or f"{st_role.capitalize()}-{uuid.uuid4().hex[:4]}"
+                st_task = st_dict.get("task") or f"Subtask {idx+1} for: {goal}"
+                st_command = st_dict.get("command")
+
+                sub_agent = self.spawn_agent(
+                    name=st_name,
+                    task=st_task,
+                    command=st_command,
+                    role=st_role,
+                    parent_id=delegation_id,
+                    goal=goal
+                )
+                spawned_subtasks_list.append(sub_agent)
+
+        summary = {
+            "delegation_id": delegation_id,
+            "goal": goal,
+            "goal_mode": goal_mode,
+            "orchestrator": orchestrator_name,
+            "orchestrator_agent_id": orch_agent.get("id") if orch_agent else None,
+            "subtasks": spawned_subtasks_list,
+            "status": "orchestrated",
+            "created_at": created_at
+        }
+
+        with self._lock:
+            if not hasattr(self, "delegations"):
+                self.delegations = {}
+            self.delegations[delegation_id] = summary
+
+        return summary
+
+    def get_delegations(self) -> list:
+        with self._lock:
+            if not hasattr(self, "delegations"):
+                self.delegations = {}
+            dels = list(self.delegations.values())
+        dels.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return dels
+
+    def get_delegation(self, delegation_id: str):
+        with self._lock:
+            if not hasattr(self, "delegations"):
+                self.delegations = {}
+            return self.delegations.get(delegation_id)
 
 swarm_manager = SwarmManager()

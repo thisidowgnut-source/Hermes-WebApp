@@ -1,0 +1,26 @@
+[
+  {
+    "id": "post-001",
+    "platform": "tiktok",
+    "content": "🍩 Khairul Aming — Doh-Nut Viral Campaign (KA) \nAudio: Khairul Aming Kitchen Acoustic (110 BPM)\nStory: Struggle to mastery arc\nHashtags: #DohNut #FYP #DonutMalaysia #KhalifaKitchen",
+    "schedule_at": "2026-09-17T10:30:00+00:00",
+    "status": "pending",
+    "created_at": "2026-09-16T12:00:00+00:00"
+  },
+  {
+    "id": "post-002",
+    "platform": "instagram",
+    "content": "Reels — ASMR Crunch (88 BPM) \nCaption: Dengar bunyi kerak rangup ni bila disira gula panas...",
+    "schedule_at": "2026-09-17T16:00:00+00:00",
+    "status": "pending",
+    "created_at": "2026-09-16T12:05:00+00:00"
+  },
+  {
+    "id": "post-003",
+    "platform": "threads",
+    "content": "Pasar Malam Groovy Funk Pop (128 BPM) — Beat drop at second 3. Customer craving arc.",
+    "schedule_at": "2026-09-18T09:15:00+00:00",
+    "status": "pending",
+    "created_at": "2026-09-16T12:10:00+00:00"
+  }
+]

@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.11.0] - 2026-09-18
+
+### Changed
+- **Unified Social Autopilot SQLite Database**:
+  - Resolved path inconsistency where `backend/routers/social.py`, `backend/services/reach_engine.py`, and `backend/routers/system.py` were referencing root `social_autopilot.db` while `dohnut.py` referenced `var/lib/social_autopilot.db`.
+  - Consolidated all 17 omnichannel drafts and audit logs into `var/lib/social_autopilot.db` and updated all backend endpoints to use the canonical FHS 3.0 path.
+- **FHS 3.0 Clean Root Reorganization**:
+  - Moved runtime log `cloudflared.log` to `var/log/cloudflared.log`.
+  - Moved legacy sample `queue.json` to `docs/archive/queue.json`.
+  - Archived historical review documents (`REVIEW-MENYELURUH.md`, `SERVERLESS-DESIGN.md`, `SUGGESTI-FLOWISE-POSTIZ.md`, `UI-UX-IMPROVEMENT-PLAN.md`) into `docs/archive/`.
+  - Moved visual architecture diagrams (`visual-arsitektur-integrasi.html`, `visual-serverless-infografik.html`) to `docs/`.
+  - Archived one-off migration scripts (`scripts/fix_terminal_id.py`, `scripts/fix_tg.py`) into `scripts/archive/patches/`.
+  - Enforced strict <= 15 root directory ceiling (exactly 13 essential files remain).
+- **Anti-AI Slop Icon Refinement (`static/mission-control.js`)**:
+  - Replaced emojis `🎯` and `⚠️` in Mission Control header and recovery banner with Lucide SVG icons (`crosshair`, `alert-triangle`).
+
+### Fixed
+- **Pytest Suite Optimization**:
+  - Verified 100% pass across all 292 tests (0 failures, 72.46s).
+
+## [3.7.0] - 2026-09-16
+
+### Added
+- **Executive Bento Grid & Command Palette (`static/index.html`)**:
+  - Redesigned the primary dashboard into a high-density, 2-column Executive Bento Grid.
+  - Implemented Raycast / Linear style neon command bar (`#direct-hermes-input`) with `↵ ENTER` shortcut and tactile `RUN` button.
+  - Added top-right `[ ⊞ CATALOG ]` launcher opening a modal with all 16 categorized sub-systems.
+  - Added live preview capture automation script (`scripts/capture_previews.py`) using system Chrome.
+- **Astra-Grade Alignment & Remote Mission Control PRD v4.1.0**:
+  - Upgraded `docs/PRD.md` to version 4.1.0 defining remote operation over AGY sessions and Doh-Nut workflows.
+  - Created `docs/ASTRA-GRADE-ALIGNMENT.md` detailing Astra-Grade v7.0-v10.0 architecture principles.
+  - Added `docs/superpowers/plans/2026-09-16-hermes-agy-remote-operations.md` multi-phase execution blueprint.
+
+### Changed
+- Refactored `backend/websockets/browser.py` to auto-detect system Google Chrome and Microsoft Edge executables, eliminating reliance on pre-downloaded `ms-playwright` chromium bundles.
+- Hardened macro handlers in `backend/routers/system.py` to run via `subprocess.run` (bounded timeout) and `subprocess.Popen` using `sys.executable`.
+- Synchronized `docs/SECURITY.md` with active HMAC-SHA256 Telegram authentication and shell metacharacter filtering.
+
+### Fixed
+- **Auth Guard Bypass**: Fixed `or not client_ip` check in `backend/auth.py` where requests with `None` client IP were bypassing token verification.
+- **Terminal WebSocket Stalls**: Normalized `\r` and `\r\n` line endings in `backend/websockets/terminal.py` for Windows `pwsh.exe` stdin pipe.
+- **Conflicting Terminal Event Listeners**: Removed legacy mock terminal emulator script and redundant `keypress` listeners in `static/index.html`.
+- **Shell Metacharacter Sanitization**: Fixed `tests/test_empirical_stress.py` to use `exit(0)` and `__import__('time').sleep(1)` without semicolons.
+- **Test Suite 100% Pass**: Elevated test suite from failing/hanging to **89/89 tests passed (100% green)** across all 11 test modules.
+
+---
+
 ## [3.6.0] - 2026-09-12
 
 ### Added

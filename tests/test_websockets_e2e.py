@@ -26,7 +26,7 @@ def test_websocket_terminal_e2e():
         assert data.get("type") == "pong"
 
         # Text command exchange
-        websocket.send_text("Write-Output 'HERMES_TERMINAL_TEST'")
+        websocket.send_text("Write-Output 'HERMES_TERMINAL_TEST'\r\n")
         output_received = False
         for _ in range(10):
             try:
@@ -102,8 +102,8 @@ def test_websocket_swarm_e2e():
         # Telemetry/status broadcast receipt on connect
         initial_msg = websocket.receive_text()
         data_init = json.loads(initial_msg)
-        assert data_init.get("type") in ("telemetry", "swarm_telemetry")
-        assert "data" in data_init or "active_count" in data_init
+        assert data_init.get("type") in ("init", "telemetry", "swarm_telemetry")
+        assert "telemetry" in data_init or "data" in data_init or "active_count" in data_init
 
         # Ping / Pong exchange
         websocket.send_text(json.dumps({"type": "ping"}))

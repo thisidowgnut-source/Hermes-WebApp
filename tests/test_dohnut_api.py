@@ -58,3 +58,21 @@ def test_dohnut_agent_swarm_status_endpoint():
     agent_names = [a["name"] for a in data["agents"]]
     assert any("Hermes" in name for name in agent_names)
     assert any("WebBridge" in name for name in agent_names)
+
+
+def test_dohnut_publish_webbridge_endpoint():
+    """Verify 1-tap post dispatch to WebBridge with OS clipboard sync."""
+    payload = {
+        "platform": "tiktok",
+        "content": "Viral Doh-Nut test post with rich glaze ASMR",
+    }
+    response = client.post("/api/dohnut/social/publish-webbridge", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["ok"] is True
+    assert data["platform"] == "tiktok"
+    assert "target_url" in data
+    assert "tiktok.com" in data["target_url"]
+    assert data["clipboard_synced"] is True
+    assert "message" in data
+

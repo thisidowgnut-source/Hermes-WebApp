@@ -23,6 +23,7 @@ from pydantic import BaseModel
 
 from backend.config import config
 from backend.services import dohnut_link
+from backend.services.social_validator import SocialValidator
 
 logger = logging.getLogger("hermes.dohnut_mission_control")
 router = APIRouter(prefix="/api/dohnut", tags=["dohnut"])
@@ -207,10 +208,35 @@ def generate_dohnut_social_suite(req: SocialCampaignRequest):
         "description": f"Doh-Nut Good Vibe Good Doh. Subscribe untuk resipi dan behind-the-scenes dapur kami!"
     }
 
+    # Validate each platform against SocialValidator constraints
+    tiktok_text = f"{tiktok['hook']}\n{tiktok['script']}\n{tiktok['hashtags']}"
+    yt_text = f"{youtube['title']}\n{youtube['description']}"
+
+    tiktok_val = SocialValidator.validate_post("tiktok", tiktok_text, media_aspect_ratio="9:16")
+    ig_val = SocialValidator.validate_post("instagram", instagram["caption"], media_aspect_ratio="1:1")
+    threads_val = SocialValidator.validate_post("threads", threads["content"])
+    fb_val = SocialValidator.validate_post("facebook", facebook["content"])
+    x_val = SocialValidator.validate_post("x", x_post["content"])
+    yt_val = SocialValidator.validate_post("youtube", yt_text, media_aspect_ratio="9:16")
+
+    # If X exceeds 280, provide auto-trimmed version
+    if x_val.auto_trimmed_text:
+        x_post["auto_trimmed_content"] = x_val.auto_trimmed_text
+
+    validations = {
+        "tiktok": tiktok_val.model_dump(),
+        "instagram": ig_val.model_dump(),
+        "threads": threads_val.model_dump(),
+        "facebook": fb_val.model_dump(),
+        "x": x_val.model_dump(),
+        "youtube": yt_val.model_dump(),
+    }
+
     return {
         "ok": True,
         "topic": topic,
         "created_at": datetime.now().isoformat(),
+        "validation": validations,
         "package": {
             "tiktok": tiktok,
             "instagram": instagram,
@@ -246,7 +272,17 @@ def publish_via_webbridge(req: WebBridgePostRequest):
     
     target_url = url_map.get(req.platform.lower(), "https://www.google.com")
     
-    # 1. Navigate active tab in Chrome Profile 50 to target platform
+    # 1. Sync draft content to Windows OS clipboard for instant pasting in Chrome Profile 50
+    clipboard_synced = False
+    if req.content:
+        try:
+            res = subprocess.run(["clip.exe"], input=req.content, text=True, timeout=2, capture_output=True)
+            clipboard_synced = (res.returncode == 0)
+        except Exception as e:
+            logger.warning(f"Could not set OS clipboard via clip.exe: {e}")
+
+
+    # 2. Navigate active tab in Chrome Profile 50 to target platform
     nav_payload = json.dumps({
         "action": "navigate",
         "args": {"url": target_url, "newTab": False}
@@ -268,9 +304,11 @@ def publish_via_webbridge(req: WebBridgePostRequest):
         "ok": True,
         "platform": req.platform,
         "target_url": target_url,
+        "clipboard_synced": clipboard_synced,
         "webbridge_result": nav_res,
-        "message": f"Dispatched {req.platform} draft to Chrome Profile 50 via WebBridge!"
+        "message": f"Dispatched {req.platform} draft to Chrome Profile 50 via WebBridge! Kapsyen disalin ke clipboard."
     }
+
 
 @router.get("/ai-labs/status")
 def get_ai_labs_status():

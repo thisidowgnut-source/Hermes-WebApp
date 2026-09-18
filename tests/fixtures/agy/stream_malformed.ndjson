@@ -1,0 +1,5 @@
+{not-valid-json}
+{"event":"unknown_type","data":{}}
+{"event":"result"}
+{"event":"init","conversation_id":"bad"}
+{"event":"result","result":{"conversation_id":"333","status":"SUCCESS","usage":{"total_tokens":"invalid_number"}}}

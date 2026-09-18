@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — Deployment & Infrastructure Guide"
 document_id: "HERMES-WEBAPP-DEP-001"
-version: "3.6.0"
-last_updated: "2026-09-12 16:35:00 MYT"
+version: "3.8.0"
+last_updated: "2026-09-16 13:45:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "ENGINEERING DOCS // DEPLOYMENT RUNBOOK"
 lifecycle_status: "PRODUCTION / STABLE"
@@ -18,6 +18,8 @@ lifecycle_status: "PRODUCTION / STABLE"
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Scope / Root Cause | Components Updated | Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.8.0`** | 2026-09-16 13:45:00<br>`2026-09-16T05:45:00Z` | Antigravity Conductor | Cloudflare Quick-Start & Auto-Tunnel Architecture, WebBridge Profile 50, Health/Traces APIs, Swarm Delegation, & G:\Doh-Nut Storefront Bridge. | `docs/DEPLOYMENT.md`, `backend/routers/system.py`, `backend/routers/swarm.py`, `backend/routers/social.py` | Pytest 100% pass (275+ tests), live health & traces endpoints verified. |
+| **`3.7.0`** | 2026-09-16 07:30:00<br>`2026-09-15T23:30:00Z` | Antigravity Specialist | Capability Health Probes, Restart Recovery, & Legacy Social Migration. | `backend/services/capability_probe.py`, `backend/cli/migrate_legacy_social.py` | Pytest 100% pass, dry-run zero-write verified. |
 | **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Pematuhan FHS 3.0 (runtime di `var/`) & pengekalan terowong PID 15260. | `docs/DEPLOYMENT.md`, `var/run/`, `var/log/` | Uvicorn 9220 & Cloudflare tunnel persistent. |
 | **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Penyeliaan NSSM dan automasi skrip `cloudflare_webhook_updater.py`. | `scripts/cloudflare_webhook_updater.py` | Servis Windows auto-start lulus. |
 
@@ -100,3 +102,82 @@ requests.post(f"https://api.telegram.org/bot{token}/setChatMenuButton", json={
 > Jika anda menggunakan mod ini dengan *Cloudflare Quick Tunnel* biasa, URL anda akan **bertukar** setiap kali PC *restart*. Ini bermakna anda perlu mengemaskini semula URL di dalam Bot Telegram (`@BotFather`). Untuk penyelesaian kekal, anda MESTI mendaftar akaun Cloudflare dan pasang Named Tunnel seperti di Langkah 2 di atas.
 
 Your Hermes OS WebApp is now a persistent, silent background command center!
+
+---
+
+## 6. Honest Capability Health & Restart Recovery
+
+Hermes WebApp features built-in honest capability probing to verify that required executables, databases, and network adapters are genuinely operational (avoiding false "ONLINE" assertions based on file presence alone):
+
+- **AGY CLI Probe**: Empirically executes `agy --version` with subprocess timeouts.
+- **Hermes Coordinator**: Reads feature flag `HERMES_ADAPTER_ENABLED` and checks coordinator protocol readiness.
+- **Database Probe**: Runs `SELECT 1` and inspects `PRAGMA journal_mode` (WAL mode enforcement).
+- **WebBridge Probe**: Probes `http://127.0.0.1:10087/health` for local automation health.
+- **Tunnel Probe**: Inspects local `cloudflared` process presence and binary readiness.
+
+During application startup, `MissionService.reconcile_startup()` identifies any uncompleted running runs that crashed across restarts and marks them `INTERRUPTED` while appending recovery audit events to `missions.db`.
+
+---
+
+## 7. Legacy Social Autopilot Data Migration
+
+To migrate existing SQLite drafts (`social_autopilot.db`) or JSON draft exports into the new durable ledger (`missions.db`):
+
+```powershell
+# 1. Perform a dry-run (writes 0 rows, verifies SHA-256 integrity):
+python -m backend.cli.migrate_legacy_social --source var/lib/social_autopilot.db --destination var/lib/missions.db
+
+# 2. Perform live migration with manifest logging:
+python -m backend.cli.migrate_legacy_social --source var/lib/social_autopilot.db --destination var/lib/missions.db --live
+```
+
+---
+
+## 8. Cloudflare Quick-Start & `G:\Doh-Nut` Storefront Bridge Architecture
+
+### 8.1 Zero-Cloud 1-Command Startup
+Hermes OS runs 100% sovereignly without requiring Docker, Redis, or cloud databases.
+
+```powershell
+# Terminal 1: Launch FastAPI Backend (Port 9220)
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 9220
+
+# Terminal 2: Expose via Cloudflare Quick Tunnel (Zero Port-Forwarding)
+cloudflared tunnel --url http://127.0.0.1:9220
+```
+
+### 8.2 Live Observability & Comprehensive Health Probing
+The system exposes instant health checks and execution trace streams:
+- **Comprehensive Health Check**: `GET /api/health/comprehensive`
+  - Validates system load (CPU, RAM, Disk), SQLite Durable Queue backlog, SQLite Social DB connectivity, active Swarm agent counts, and GangNiaga WebBridge connectivity (port 10087).
+- **Execution Traces Export**: `GET /api/traces?limit=50`
+  - Aggregates recent durable scheduled jobs, swarm agent execution logs, and mission events into a single unified trace stream.
+
+### 8.3 Multi-Agent Swarm Delegation (`goal_mode`)
+- **Endpoint**: `POST /api/swarm/delegate`
+- Spawns an orchestrator lead (`role="orchestrator"`) with concurrent subagent workers (`role="researcher"`, `role="engineer"`, etc.) linked to a persistent `delegation_id` (`del-xxxx`), queryable via `GET /api/swarm/delegations`.
+
+### 8.4 Connecting with `G:\Doh-Nut` Storefront (Dual-Mode Architecture)
+The Doh-Nut Next.js 16 App Router storefront (`G:\Doh-Nut`) connects with Hermes-WebApp in three seamless modes:
+
+1. **Production Vercel Bridge (Default / Fail-Soft)**:
+   - Configured via `DOHNUT_API_URL="https://dowgnut-custom.vercel.app"`.
+   - Hermes queries `/api/donuts` and `/api/admin/stats` automatically with a 30s TTL cache (`backend/services/dohnut_link.py`).
+2. **Local Dual-Mode Development Bridge**:
+   - Start the local Doh-Nut dev server in `G:\Doh-Nut`:
+     ```powershell
+     cd G:\Doh-Nut
+     bun dev # Runs on http://127.0.0.1:3000
+     ```
+   - In `Hermes-WebApp\.env`, override:
+     ```env
+     DOHNUT_API_URL="http://127.0.0.1:3000"
+     ```
+   - Hermes will seamlessly fetch catalog items, stock counters, and order queues from your local Next.js dev server.
+3. **Direct SQLite Prisma Shared Database Mode**:
+   - `G:\Doh-Nut` stores data in SQLite at `G:\Doh-Nut\prisma\dev.db` or `G:\Doh-Nut\db\custom.db`.
+   - Hermes backend can directly query/inspect the Prisma SQLite database without HTTP network latency.
+4. **WebBridge Chrome Profile 50 Publishing**:
+   - `POST /api/dohnut/social/publish-webbridge` synchronizes draft scripts to the OS clipboard via `clip.exe` and navigates authenticated Chrome Profile 50 tabs directly to TikTok, Instagram, Threads, Facebook, X, and YouTube.
+
+

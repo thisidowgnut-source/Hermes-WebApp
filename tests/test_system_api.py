@@ -180,9 +180,10 @@ def test_get_swarm_status():
     assert "agents" in data
     assert isinstance(data["agents"], list)
 
-def test_file_read_write(tmp_path):
-    test_file = tmp_path / "test_note.txt"
-    test_file.write_text("Hello Hermes OS", encoding="utf-8")
+def test_file_read_write(tmp_path_local):
+    test_file = os.path.join(tmp_path_local, "test_note.txt")
+    with open(test_file, "w", encoding="utf-8") as f:
+        f.write("Hello Hermes OS")
 
     # Read test
     res = client.post("/api/files/read", json={"path": str(test_file)})
@@ -194,11 +195,12 @@ def test_file_read_write(tmp_path):
     res_write = client.post("/api/files/write", json={"path": str(test_file), "content": "Updated Content", "create_backup": True})
     assert res_write.status_code == 200
     assert res_write.json()["status"] == "success"
-    assert test_file.read_text(encoding="utf-8") == "Updated Content"
+    with open(test_file, "r", encoding="utf-8") as f:
+        assert f.read() == "Updated Content"
     assert os.path.exists(f"{test_file}.bak")
 
 def test_file_read_nonexistent():
-    res = client.post("/api/files/read", json={"path": "C:\\nonexistent_file_12345.txt"})
+    res = client.post("/api/files/read", json={"path": os.path.join(config.BASE_DIR, "nonexistent_file_12345.txt")})
     assert res.status_code == 404
 
 def test_get_system_services():
@@ -285,6 +287,84 @@ def test_obsidian_search_endpoint():
     assert res.status_code == 200
     assert res.json()["status"] == "success"
     assert "results" in res.json()
+
+def test_health_comprehensive_endpoint():
+    res = client.get("/api/health/comprehensive")
+    assert res.status_code == 200
+    data = res.json()
+    assert "status" in data
+    assert data["status"] in ("healthy", "degraded")
+    assert "timestamp" in data
+    assert "checks" in data
+
+    checks = data["checks"]
+    # Check 1: System
+    assert "system" in checks
+    sys_check = checks["system"]
+    assert "cpu_percent" in sys_check
+    assert "memory_percent" in sys_check
+    assert "disk_free_gb" in sys_check
+    assert "uptime" in sys_check
+    assert isinstance(sys_check["cpu_percent"], (int, float))
+    assert isinstance(sys_check["memory_percent"], (int, float))
+    assert isinstance(sys_check["disk_free_gb"], (int, float))
+    assert isinstance(sys_check["uptime"], int)
+
+    # Check 2: Durable Queue
+    assert "durable_queue" in checks
+    dq_check = checks["durable_queue"]
+    assert "pending" in dq_check
+    assert "processing" in dq_check
+    assert "completed" in dq_check
+    assert isinstance(dq_check["pending"], int)
+    assert isinstance(dq_check["processing"], int)
+    assert isinstance(dq_check["completed"], int)
+
+    # Check 3: Social DB
+    assert "social_db" in checks
+    soc_check = checks["social_db"]
+    assert "connected" in soc_check
+    assert "drafts" in soc_check
+    assert isinstance(soc_check["connected"], bool)
+    assert isinstance(soc_check["drafts"], int)
+
+    # Check 4: Swarm
+    assert "swarm" in checks
+    swarm_check = checks["swarm"]
+    assert "active_agents" in swarm_check
+    assert "total_agents" in swarm_check
+    assert isinstance(swarm_check["active_agents"], int)
+    assert isinstance(swarm_check["total_agents"], int)
+
+    # Check 5: WebBridge
+    assert "webbridge" in checks
+    wb_check = checks["webbridge"]
+    assert "status" in wb_check
+    assert wb_check["status"] in ("connected", "offline")
+
+def test_traces_endpoint():
+    res = client.get("/api/traces?limit=15")
+    assert res.status_code == 200
+    data = res.json()
+    assert "traces" in data
+    assert "count" in data
+    assert "timestamp" in data
+    assert isinstance(data["traces"], list)
+    assert data["count"] == len(data["traces"])
+    assert data["count"] <= 15
+
+    for trace in data["traces"]:
+        assert "source" in trace
+        assert "message" in trace
+        assert "timestamp" in trace
+
+def test_traces_endpoint_default_limit():
+    res = client.get("/api/traces")
+    assert res.status_code == 200
+    data = res.json()
+    assert "traces" in data
+    assert data["count"] <= 50
+
 
 
 

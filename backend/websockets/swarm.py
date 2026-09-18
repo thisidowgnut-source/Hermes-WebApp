@@ -93,9 +93,7 @@ async def swarm_ws(websocket: WebSocket):
                     agent = swarm_manager.spawn_agent(
                         name=msg.get("name"),
                         task=msg.get("task"),
-                        command=msg.get("command"),
-                        model=msg.get("model", "gpt-4"),
-                        working_dir=msg.get("working_dir")
+                        command=msg.get("command")
                     )
                     await broadcast_to_all({
                         "type": "agent_spawned",

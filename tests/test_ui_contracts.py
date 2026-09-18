@@ -219,3 +219,24 @@ def test_dom_patch_does_not_strip_inline_handlers_or_assume_an_icon() -> None:
     assert 'removeAttribute("onclick")' not in source
     assert not re.search(r"querySelector\(\s*['\"]i['\"]\s*\)\.getAttribute\(", source)
 
+
+def test_javascript_syntax_integrity() -> None:
+    """Validate that every inline script in index.html parses cleanly without SyntaxError."""
+    import subprocess
+    import tempfile
+
+    source, _ = _load_index()
+    scripts = re.findall(r"<script(?![^>]*src=)[^>]*>(.*?)</script>", source, re.DOTALL | re.IGNORECASE)
+    assert len(scripts) > 0, "No inline scripts found in index.html"
+
+    for i, script_body in enumerate(scripts):
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".js", delete=False, encoding="utf-8") as f:
+            f.write(script_body)
+            temp_path = f.name
+        try:
+            res = subprocess.run(["node", "-c", temp_path], capture_output=True, text=True)
+            assert res.returncode == 0, f"Inline script #{i} has syntax error: {res.stderr}"
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+

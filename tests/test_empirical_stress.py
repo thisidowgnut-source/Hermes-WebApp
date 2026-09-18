@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import time
 import base64
@@ -51,7 +52,7 @@ def test_swarm_non_existent_pid_termination():
     res = client.post("/api/swarm/spawn", json={
         "name": "Quick Exit Agent",
         "task": "Exit fast",
-        "command": "python -c \"import sys; sys.exit(0)\""
+        "command": f'"{sys.executable}" -c "exit(0)"'
     })
     assert res.status_code == 200
     agent_id = res.json()["agent"]["id"]
@@ -90,7 +91,7 @@ def test_swarm_rapid_spawn_stress():
         resp = client.post("/api/swarm/spawn", json={
             "name": f"Rapid Agent #{idx}",
             "task": f"Parallel stress iteration {idx}",
-            "command": "python -c \"import time; time.sleep(1)\""
+            "command": f'"{sys.executable}" -c "__import__(\'time\').sleep(1)"'
         })
         elapsed = time.perf_counter() - t0
         return resp.status_code, resp.json(), elapsed

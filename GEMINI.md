@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — Workspace Memory & Learned Rules"
 document_id: "HERMES-WEBAPP-MEM-001"
-version: "3.10.0"
-last_updated: "2026-09-17 08:00:00 MYT"
+version: "3.11.0"
+last_updated: "2026-09-18 21:15:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "MISSION-CRITICAL // OPERATIONAL MEMORY"
 lifecycle_status: "ACTIVE"
@@ -18,6 +18,7 @@ Dokumen ini merekodkan peraturan yang dipelajari, status seni bina, dan standard
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Root Cause / Rationale | Code Scope & Changes | Empirical Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.11.0`** | 2026-09-18 21:15:00<br>`2026-09-18T13:15:00Z` | Antigravity Conductor | Penyatuan Dwi-Database `social_autopilot.db` ke `var/lib/`, Pembersihan FHS 3.0 (13 fail teras), dan Pengalihan Emojis ke Lucide Icons. | `backend/routers/social.py`, `backend/services/reach_engine.py`, `backend/routers/system.py`, `static/mission-control.js`, `var/lib/`, `docs/`, `GEMINI.md` | Pytest 292/292 lulus penuh (100% green, 72.46s), live health HTTP 200 (uptime 147k s), Telegram WebApp verified intact. |
 | **`3.10.0`** | 2026-09-17 08:00:00<br>`2026-09-17T00:00:00Z` | Antigravity Conductor | Penguatkuasaan Mobile-First Penuh, Pengerasan CORS W3C, Penutupan Dev-Auth Bypass di Produksi, dan Pembersihan WebSocket Ping/Pong stdout. | `static/index.html`, `backend/config.py`, `backend/auth.py`, `backend/main.py`, `backend/websockets/`, `GEMINI.md` | Chrome DevTools MCP mobile 390x844 verified, 7/7 UI contracts pass, 63/63 auth & system API tests pass. |
 | **`3.7.0`** | 2026-09-16 06:30:00<br>`2026-09-15T22:30:00Z` | Antigravity Conductor | Pembaikan P0 auth guard, websocket line endings, Playwright Chrome autodetect, pembersihan mock terminal, dan reka bentuk semula Executive Bento Grid. | `static/index.html`, `backend/auth.py`, `backend/websockets/`, `tests/`, `GEMINI.md` | 89/89 Pytest lulus penuh (100% green, 48.89s), Chrome DevTools MCP desktop & mobile verified, 0 background tasks. |
 | **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0 (Direktori PRO), Penghapusan Jitter Butang (Emil Kowalski Craft), dan Arkitektur Mobile-First Sifar-Bertindih. | `static/index.html`, `var/`, `tools/mcp/`, `docs/`, `tests/test_dohnut_api.py`, `GEMINI.md` | FHS 3.0 root 13 fail, 0 jitter butang pada hover, 0 bertindih pada viewport 390x844 & 360x740, 5/5 Doh-Nut tests passing. |

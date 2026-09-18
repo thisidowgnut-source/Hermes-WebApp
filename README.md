@@ -1,8 +1,8 @@
 ---
 title: "Hermes OS & Doh-Nut Sovereign Mission Control — System Architecture & Operating Guide"
 document_id: "HERMES-WEBAPP-DOC-001"
-version: "3.6.0"
-last_updated: "2026-09-12 16:35:00 MYT"
+version: "3.9.0"
+last_updated: "2026-09-16 14:35:00 MYT"
 maintainer: "GangBo Sovereign Architect"
 classification: "MISSION-CRITICAL // SOVEREIGN ENGINE"
 lifecycle_status: "PRODUCTION / STABLE"
@@ -18,6 +18,8 @@ lifecycle_status: "PRODUCTION / STABLE"
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Root Cause / Rationale | Code Scope & Components Touched | Empirical Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.9.0`** | 2026-09-16 14:35:00<br>`2026-09-16T06:35:00Z` | Antigravity Conductor | Agent-Reach Internet Capability Router: 15-Platform Ingestion, yt-dlp Subtitle Extraction, Jina Reader Zero-Headless Web Ingestion & Bento HUD 1-Tap Bar. | `backend/services/reach_engine.py`, `backend/routers/reach.py`, `static/index.html`, `docs/`, `README.md` | 292/292 Pytest suite passed (100% green, 36 test files). |
+| **`3.8.0`** | 2026-09-16 13:45:00<br>`2026-09-16T05:45:00Z` | Antigravity Conductor | Swarm Goal Mode Delegation, Comprehensive Health & Traces APIs, SocialValidator Auto-trimming & SMS-v1.0 Approval Audit Log. | `backend/routers/social.py`, `backend/routers/dohnut.py`, `backend/routers/swarm.py`, `backend/routers/system.py`, `docs/`, `README.md` | 275+ Pytest suite passed (100% green), Zero-Cloud RM0 architecture verified. |
 | **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Penstrukturan FHS 3.0 (Direktori PRO), Penghapusan Jitter Butang (Emil Kowalski Craft), dan Arkitektur Mobile-First Sifar-Bertindih. | `static/index.html`, `var/`, `tools/mcp/`, `docs/`, `tests/test_dohnut_api.py`, `README.md` | FHS 3.0 root 13 fail, 0 jitter butang pada hover, 0 bertindih pada viewport 390x844 & 360x740, 5/5 Doh-Nut tests passing. |
 | **`3.5.0`** | 2026-09-12 15:15:00<br>`2026-09-12T07:15:00Z` | Antigravity Conductor | Penyatuan All-in-1 Mission Control Doh-Nut ke dalam Hermes-WebApp tanpa mengganggu persediaan Telegram Menu Button. | `backend/routers/dohnut.py`, `backend/main.py`, `static/index.html`, `README.md` | 5/5 API Endpoints 200 OK, Chrome DevTools MCP Desktop & Mobile (390px) verified, Zero console errors. |
 | **`3.4.0`** | 2026-09-12 02:30:00<br>`2026-09-11T18:30:00Z` | Conductor Agent | Pengesahan profil media sosial Chrome Profile 50 (`thisisdohnut@gmail.com`) dan integrasi WebBridge port 10087. | `static/index.html`, `scripts/ai_labs_dispatcher.py` | 6 platform disahkan, 62/62 Bun tests pass. |

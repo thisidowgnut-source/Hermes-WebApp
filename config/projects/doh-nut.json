@@ -1,0 +1,21 @@
+{
+  "slug": "doh-nut",
+  "display_name": "Doh-Nut",
+  "workspace_path": "G:/Doh-Nut",
+  "agy_project_id": null,
+  "brand_truth_path": "G:/Doh-Nut/brand-system/01-brand-truth.md",
+  "approval_policy": {
+    "social_requires_human_confirmation": true,
+    "approval_ttl_seconds": 900
+  },
+  "agents": {
+    "dohnut-orchestrator": {"display_name":"Doh-Nut Orchestrator","execution":"agy"},
+    "dohnut-frontend-artisan": {"display_name":"Doh-Nut Frontend Artisan","execution":"agy"},
+    "dohnut-backend-architect": {"display_name":"Doh-Nut Backend Architect","execution":"agy"},
+    "dohnut-realtime-ops": {"display_name":"Doh-Nut Realtime Ops","execution":"agy"},
+    "dohnut-qa-guardian": {"display_name":"Doh-Nut QA Guardian","execution":"agy"},
+    "dohnut-brand-guardian": {"display_name":"Doh-Nut Brand Guardian","execution":"agy"},
+    "dohnut-viral-engine": {"display_name":"Doh-Nut Viral Engine","execution":"agy"},
+    "dohnut-social-autopilot": {"display_name":"Doh-Nut Social Autopilot","execution":"agy"}
+  }
+}

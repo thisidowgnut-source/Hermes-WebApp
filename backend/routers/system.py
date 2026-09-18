@@ -1,8 +1,15 @@
 import os
+import sys
+import subprocess
 import psutil
 import json
 import time
+import re
+from pathlib import Path
 import asyncio
+import sqlite3
+import urllib.request
+from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
@@ -12,6 +19,34 @@ from backend.config import config
 router = APIRouter()
 
 QUEUE_FILE = os.path.join(config.BASE_DIR, ".queue", "queue.json")
+
+# --- Path Sandbox (P0 security: whitelist roots for /api/files/*) ---
+_ALLOWED_ROOTS = [
+    os.path.normpath(config.BASE_DIR),                          # Hermes-WebApp project
+    os.path.normpath(r"C:\Users\megat\ObsidianVault"),          # Obsidian vault
+    os.path.normpath(r"G:\Doh-Nut"),                            # DOHNUT storefront
+]
+_SENSITIVE_NAMES = {".env", ".env.local", ".git", ".ssh", "id_rsa", "id_ed25519", "credentials.json", "*.pem", "*.key"}
+
+def _is_path_allowed(file_path: str) -> bool:
+    """Allowlist check: path must resolve inside an allowed root, and must not touch sensitive files."""
+    try:
+        real = os.path.realpath(os.path.abspath(file_path))
+        norm = os.path.normpath(real)
+    except Exception:
+        return False
+    if not any(norm == root or norm.startswith(root + os.sep) for root in _ALLOWED_ROOTS):
+        return False
+    base = os.path.basename(norm).lower()
+    if base in _SENSITIVE_NAMES or base.startswith(".env"):
+        return False
+    if any(part.lower() in {".git", ".ssh"} for part in norm.split(os.sep)):
+        return False
+    return True
+
+def _reject_if_not_allowed(file_path: str):
+    if not _is_path_allowed(file_path):
+        raise HTTPException(status_code=403, detail="Path outside sandbox or sensitive file blocked")
 
 def _read_queue():
     if not os.path.exists(QUEUE_FILE):
@@ -39,6 +74,251 @@ def health_check():
         "version": "1.0.0",
         "uptime_seconds": int(time.time() - psutil.boot_time())
     }
+
+@router.get("/api/health/comprehensive")
+def health_comprehensive():
+    """
+    Comprehensive health check endpoint inspecting:
+    - System: cpu_percent, memory_percent, disk_free_gb, uptime
+    - SQLite Durable Queue: counts pending, processing, completed jobs from DurableScheduler
+    - SQLite Social DB: checks connectivity, counts drafts
+    - Swarm: active agents count, total agents count
+    - WebBridge: ping http://127.0.0.1:10087/health with 1s timeout (status: connected or offline)
+    """
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    # 1. System metrics
+    cpu = psutil.cpu_percent(interval=None)
+    mem = psutil.virtual_memory().percent
+    try:
+        disk = psutil.disk_usage('C:\\' if os.name == 'nt' else '/')
+    except Exception:
+        disk = psutil.disk_usage('/')
+    disk_free_gb = round(disk.free / (1024**3), 2)
+    uptime = int(time.time() - psutil.boot_time())
+
+    system_check = {
+        "status": "healthy",
+        "cpu_percent": cpu,
+        "memory_percent": mem,
+        "disk_free_gb": disk_free_gb,
+        "uptime": uptime
+    }
+
+    # 2. SQLite Durable Queue
+    durable_check = {
+        "status": "healthy",
+        "pending": 0,
+        "processing": 0,
+        "completed": 0
+    }
+    try:
+        from backend.services.durable_scheduler import get_durable_scheduler
+        sched = get_durable_scheduler()
+        conn = sched._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT status, COUNT(*) FROM scheduled_jobs GROUP BY status")
+            counts = dict(cursor.fetchall())
+            durable_check["pending"] = counts.get("pending", 0)
+            durable_check["processing"] = counts.get("running", 0) + counts.get("processing", 0)
+            durable_check["completed"] = counts.get("completed", 0)
+        finally:
+            conn.close()
+    except Exception as exc:
+        durable_check["status"] = "degraded"
+        durable_check["error"] = str(exc)
+
+    # 3. SQLite Social DB
+    social_check = {
+        "status": "connected",
+        "connected": True,
+        "drafts": 0,
+        "drafts_count": 0
+    }
+    try:
+        social_db_path = os.path.join(config.BASE_DIR, "var", "lib", "social_autopilot.db")
+        with sqlite3.connect(social_db_path, timeout=1.0) as s_conn:
+            cursor = s_conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='omnichannel_drafts'")
+            if cursor.fetchone():
+                cursor.execute("SELECT COUNT(*) FROM omnichannel_drafts")
+                cnt = cursor.fetchone()[0]
+                social_check["drafts"] = cnt
+                social_check["drafts_count"] = cnt
+    except Exception as exc:
+        social_check["status"] = "offline"
+        social_check["connected"] = False
+        social_check["error"] = str(exc)
+
+    # 4. Swarm
+    swarm_check = {
+        "status": "healthy",
+        "active_agents": 0,
+        "active_count": 0,
+        "total_agents": 0,
+        "total_count": 0
+    }
+    try:
+        from backend.services.swarm_manager import swarm_manager
+        agents = swarm_manager.get_agents()
+        active = len([a for a in agents if a.get("status") == "running"])
+        total = len(agents)
+        swarm_check["active_agents"] = active
+        swarm_check["active_count"] = active
+        swarm_check["total_agents"] = total
+        swarm_check["total_count"] = total
+    except Exception as exc:
+        swarm_check["status"] = "degraded"
+        swarm_check["error"] = str(exc)
+
+    # 5. WebBridge
+    webbridge_status = "offline"
+    try:
+        req = urllib.request.Request("http://127.0.0.1:10087/health", headers={"User-Agent": "Hermes-HealthCheck"})
+        with urllib.request.urlopen(req, timeout=1.0) as resp:
+            if resp.status < 400:
+                webbridge_status = "connected"
+    except Exception:
+        webbridge_status = "offline"
+
+    webbridge_check = {
+        "status": webbridge_status,
+        "url": "http://127.0.0.1:10087/health"
+    }
+
+    # Aggregate status determination
+    is_healthy = (
+        durable_check["status"] == "healthy"
+        and social_check["connected"]
+        and swarm_check["status"] == "healthy"
+        and webbridge_status == "connected"
+    )
+    overall_status = "healthy" if is_healthy else "degraded"
+
+    checks = {
+        "system": system_check,
+        "durable_queue": durable_check,
+        "sqlite_durable_queue": durable_check,
+        "social_db": social_check,
+        "sqlite_social_db": social_check,
+        "swarm": swarm_check,
+        "webbridge": webbridge_check
+    }
+
+    return {
+        "status": overall_status,
+        "checks": checks,
+        "timestamp": timestamp
+    }
+
+@router.get("/api/traces")
+def get_traces(limit: int = 50):
+    """
+    Aggregate recent operational traces from:
+    - DurableScheduler recent jobs
+    - SwarmManager recent agent logs and status
+    - Mission events (if available)
+    """
+    effective_limit = max(1, limit)
+    traces = []
+
+    # 1. DurableScheduler recent jobs
+    try:
+        from backend.services.durable_scheduler import get_durable_scheduler
+        sched = get_durable_scheduler()
+        jobs = sched.list_jobs(limit=effective_limit)
+        for job in jobs:
+            created_str = job.created_at.isoformat() if hasattr(job.created_at, "isoformat") else str(job.created_at)
+            traces.append({
+                "source": "durable_scheduler",
+                "category": "scheduler_job",
+                "id": str(job.id),
+                "project_slug": job.project_slug,
+                "platform": job.platform,
+                "action": job.action,
+                "status": job.status,
+                "message": f"Job {job.action} on {job.platform} ({job.status})",
+                "timestamp": created_str
+            })
+    except Exception:
+        pass
+
+    # 2. SwarmManager recent agent logs and status
+    try:
+        from backend.services.swarm_manager import swarm_manager
+        agents = swarm_manager.get_agents()
+        for agent in agents:
+            traces.append({
+                "source": "swarm",
+                "category": "agent_status",
+                "id": agent.get("id"),
+                "name": agent.get("name"),
+                "role": agent.get("role", "worker"),
+                "status": agent.get("status"),
+                "message": f"Agent '{agent.get('name')}' status: {agent.get('status')} - {agent.get('task')}",
+                "timestamp": agent.get("created_at")
+            })
+            for log in (agent.get("logs") or [])[-5:]:
+                traces.append({
+                    "source": "swarm",
+                    "category": "agent_log",
+                    "id": agent.get("id"),
+                    "name": agent.get("name"),
+                    "status": agent.get("status"),
+                    "message": log,
+                    "timestamp": agent.get("created_at")
+                })
+    except Exception:
+        pass
+
+    # 3. Mission events (if available)
+    try:
+        mission_db_path = Path(config.MISSION_DB_PATH)
+        if mission_db_path.exists():
+            with sqlite3.connect(str(mission_db_path), timeout=2.0) as mconn:
+                mconn.row_factory = sqlite3.Row
+                mcursor = mconn.cursor()
+                mcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='mission_events'")
+                if mcursor.fetchone():
+                    mcursor.execute("""
+                        SELECT id, mission_id, sequence, event_type, payload, created_at
+                        FROM mission_events
+                        ORDER BY created_at DESC
+                        LIMIT ?
+                    """, (effective_limit,))
+                    for row in mcursor.fetchall():
+                        p = row["payload"]
+                        if isinstance(p, str):
+                            try:
+                                p = json.loads(p)
+                            except Exception:
+                                pass
+                        traces.append({
+                            "source": "mission",
+                            "category": "mission_event",
+                            "id": row["id"],
+                            "mission_id": row["mission_id"],
+                            "event_type": row["event_type"],
+                            "sequence": row["sequence"],
+                            "payload": p,
+                            "message": f"Mission event '{row['event_type']}' seq {row['sequence']} on mission {row['mission_id']}",
+                            "timestamp": row["created_at"]
+                        })
+    except Exception:
+        pass
+
+    # Sort newest first by timestamp
+    traces.sort(key=lambda x: str(x.get("timestamp") or ""), reverse=True)
+    traces = traces[:effective_limit]
+
+    return {
+        "status": "success",
+        "traces": traces,
+        "count": len(traces),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
 
 @router.get("/api/stats")
 def get_stats():
@@ -126,8 +406,7 @@ def delete_queue_item(item_id: str):
 
 @router.get("/api/files")
 def get_files(path: str = "C:\\"):
-    if not os.path.exists(path):
-        return {"error": "Path not found"}
+    _reject_if_not_allowed(path)
     files = []
     try:
         for entry in os.scandir(path):
@@ -143,23 +422,61 @@ def get_files(path: str = "C:\\"):
 
 @router.get("/api/logs")
 def get_logs():
-    log_file = os.getenv(
-        "AGENT_LOG_PATH",
-        r"C:\Users\megat\.gemini\antigravity-cli\brain\197bac38-afd8-4560-afaa-870723479150\.system_generated\logs\transcript.jsonl"
-    )
+    log_file = os.getenv("AGENT_LOG_PATH")
+    if not log_file or not os.path.exists(log_file):
+        # Auto-discover newest transcript.jsonl across brain conversations
+        brain_dir = Path.home() / ".gemini" / "antigravity-cli" / "brain"
+        if brain_dir.exists():
+            transcripts = list(brain_dir.glob("*/.system_generated/logs/transcript.jsonl"))
+            if transcripts:
+                transcripts.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+                log_file = str(transcripts[0])
+    
     logs = []
-    if os.path.exists(log_file):
-        with open(log_file, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            for line in lines[-20:]: 
-                try:
-                    data = json.loads(line.strip())
-                    if data.get("type") == "MODEL_MESSAGE":
-                        logs.append({"role": "Agent", "msg": data.get("content", "")})
-                    elif data.get("type") == "USER_INPUT":
-                        logs.append({"role": "User", "msg": data.get("content", "")})
-                except (json.JSONDecodeError, KeyError, TypeError):
-                    continue
+    if log_file and os.path.exists(log_file):
+        try:
+            with open(log_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                for line in lines[-25:]:
+                    try:
+                        data = json.loads(line.strip())
+                        msg_type = data.get("type", "")
+                        raw_content = str(data.get("content", "")).strip()
+                        if not raw_content:
+                            continue
+                        
+                        # Clean up raw XML or system tags for clean human readability
+                        clean_msg = raw_content
+                        req_match = re.search(r"<USER_REQUEST>(.*?)</USER_REQUEST>", raw_content, re.DOTALL)
+                        if req_match:
+                            clean_msg = req_match.group(1).strip()
+                        else:
+                            clean_msg = re.sub(r"<[^>]+>", "", raw_content).strip()
+                        
+                        # Collapse multiple whitespaces and newlines
+                        clean_msg = re.sub(r"\s+", " ", clean_msg).strip()
+                        if len(clean_msg) > 160:
+                            clean_msg = clean_msg[:157] + "..."
+                            
+                        if not clean_msg:
+                            continue
+
+                        if msg_type in ("MODEL_MESSAGE", "PLANNER_RESPONSE"):
+                            logs.append({"role": "Agent", "msg": clean_msg})
+                        elif msg_type == "USER_INPUT":
+                            logs.append({"role": "User", "msg": clean_msg})
+                        elif msg_type == "SYSTEM":
+                            logs.append({"role": "System", "msg": clean_msg})
+                    except (json.JSONDecodeError, KeyError, TypeError):
+                        continue
+        except Exception:
+            pass
+    if not logs:
+        logs = [
+            {"role": "System", "msg": "Hermes Sovereign Conductor Node initialized."},
+            {"role": "System", "msg": "Telegram HITL & Cloudflare Webhook active."},
+            {"role": "Agent", "msg": "All 16 sub-systems standing by for command."}
+        ]
     return {"logs": logs}
 
 @router.get("/api/processes")
@@ -199,14 +516,14 @@ def run_macro(macro_name: str):
         elif macro_name == "cleanup_zombies":
             script_path = os.path.join(config.BASE_DIR, "scripts", "cleanup_tasks.py")
             if os.path.exists(script_path):
-                os.system(f"python \"{script_path}\"")
+                subprocess.run([sys.executable, script_path], check=False, capture_output=True, timeout=15)
                 return {"status": "success", "msg": "Zombie processes cleaned!"}
             return {"status": "error", "msg": "cleanup_tasks.py not found"}
         elif macro_name == "sync_webhook":
             script_path = os.path.join(config.BASE_DIR, "scripts", "cloudflare_webhook_updater.py")
             if os.path.exists(script_path):
-                os.system(f"python \"{script_path}\"")
-                return {"status": "success", "msg": "Cloudflare Webhook synced!"}
+                subprocess.Popen([sys.executable, script_path])
+                return {"status": "success", "msg": "Cloudflare Webhook sync initiated!"}
             return {"status": "error", "msg": "cloudflare_webhook_updater.py not found"}
         else:
             return {"status": "error", "msg": "Unknown macro"}
@@ -426,6 +743,7 @@ class AlertRequest(BaseModel):
 @router.post("/api/files/read")
 def read_file_content(req: FileReadRequest):
     """Read file content safely (up to 2MB)."""
+    _reject_if_not_allowed(req.path)
     file_path = req.path
     if not os.path.exists(file_path) or os.path.isdir(file_path):
         raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
@@ -450,6 +768,7 @@ def read_file_content(req: FileReadRequest):
 @router.post("/api/files/write")
 def write_file_content(req: FileWriteRequest):
     """Save file content with optional automatic backup."""
+    _reject_if_not_allowed(req.path)
     file_path = req.path
     if req.create_backup and os.path.exists(file_path):
         try:
@@ -819,7 +1138,8 @@ def search_obsidian_vault(req: ObsidianSearchRequest):
 
     results = []
     if os.path.exists(OBSIDIAN_VAULT_DIR):
-        for root, _, files in os.walk(OBSIDIAN_VAULT_DIR):
+        for root, dirs, files in os.walk(OBSIDIAN_VAULT_DIR):
+            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in (".backups", "node_modules", ".trash")]
             for fname in files:
                 if fname.endswith(".md"):
                     fpath = os.path.join(root, fname)

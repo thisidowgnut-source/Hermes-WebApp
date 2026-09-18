@@ -1,0 +1,31 @@
+{
+  "policy_version": "1.0.0",
+  "iteration_budget": 25,
+  "child_concurrency_budget": 3,
+  "elapsed_seconds_budget": 1800,
+  "risk_classes": {
+    "low": ["plan", "verify", "kanban_sync", "code_index_read"],
+    "review": ["draft_social", "write_spec", "benchmark"],
+    "human_required": ["browser_publish", "credential_write", "financial_action", "external_transmission"]
+  },
+  "capabilities": {
+    "plan": {
+      "id": "cap-plan",
+      "allowed_artifacts": ["markdown", "json"],
+      "network_access": false,
+      "max_duration_seconds": 300
+    },
+    "verify": {
+      "id": "cap-verify",
+      "allowed_artifacts": ["test_report", "json"],
+      "network_access": false,
+      "max_duration_seconds": 300
+    },
+    "kanban_sync": {
+      "id": "cap-kanban-sync",
+      "allowed_artifacts": ["json"],
+      "network_access": true,
+      "max_duration_seconds": 60
+    }
+  }
+}

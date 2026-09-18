@@ -51,7 +51,7 @@ async def setup_menu_button():
     
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.post(url, json=menu_button) as resp:
+            async with session.post(url, json={"menu_button": menu_button}) as resp:
                 result = await resp.json()
                 
                 if result.get("ok"):

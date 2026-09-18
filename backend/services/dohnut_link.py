@@ -9,13 +9,15 @@ network/auth failure returns None so callers fall back to seed data.
 import json
 import logging
 import os
+import sqlite3
 import time
 import urllib.request
 from datetime import datetime
 
 logger = logging.getLogger("dohnut_link")
 
-DOHNUT_API_URL = os.getenv("DOHNUT_API_URL", "https://dowgnut-custom.vercel.app").rstrip("/")
+DEFAULT_VERCEL_URL = "https://dowgnut-custom.vercel.app"
+LOCAL_DEV_URL = "http://127.0.0.1:3000"
 DOHNUT_ADMIN_API_KEY = os.getenv("DOHNUT_ADMIN_API_KEY", "")
 _TIMEOUT_S = 6
 _CACHE_TTL_S = 30
@@ -23,23 +25,73 @@ _CACHE_TTL_S = 30
 _cache = {"ts": 0.0, "section": None}
 
 
+def resolve_dohnut_url() -> tuple[str, str]:
+    """
+    Intelligently resolves whether local dev server (http://127.0.0.1:3000) or
+    production Vercel (https://dowgnut-custom.vercel.app) is active.
+    Returns (base_url, source_label).
+    """
+    env_url = os.getenv("DOHNUT_API_URL", "").strip().rstrip("/")
+    if env_url:
+        source = "local:3000" if ("3000" in env_url or "127.0.0.1" in env_url or "localhost" in env_url) else "custom_env"
+        return env_url, source
+
+    # Probe local server on 127.0.0.1:3000 with 300ms timeout
+    try:
+        req = urllib.request.Request(f"{LOCAL_DEV_URL}/api/donuts", headers={"User-Agent": "Hermes-DohnutProbe"})
+        with urllib.request.urlopen(req, timeout=0.3) as resp:
+            if resp.status == 200:
+                return LOCAL_DEV_URL, "local:nextjs-dev"
+    except Exception:
+        pass
+
+    return DEFAULT_VERCEL_URL, "vercel:dowgnut-custom"
+
+
+def get_local_sqlite_catalog() -> list | None:
+    """Fallback to direct SQLite query if G:\\Doh-Nut DB file exists on host."""
+    local_db_paths = [
+        r"G:\Doh-Nut\db\custom.db",
+        r"G:\Doh-Nut\prisma\dev.db",
+    ]
+    for db_path in local_db_paths:
+        if os.path.exists(db_path):
+            try:
+                with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=1.0) as conn:
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM Donut ORDER BY createdAt DESC")
+                    rows = [dict(r) for r in cursor.fetchall()]
+                    if rows:
+                        return rows
+            except Exception as e:
+                logger.debug("Local sqlite read error: %s", e)
+    return None
+
+
 def _fetch_json(path: str, headers: dict = None):
-    """GET {DOHNUT_API_URL}{path} and decode JSON. Raises on any failure."""
-    req = urllib.request.Request(f"{DOHNUT_API_URL}{path}", headers=headers or {})
+    """GET {base_url}{path} and decode JSON. Raises on any failure."""
+    base_url, _ = resolve_dohnut_url()
+    req = urllib.request.Request(f"{base_url}{path}", headers=headers or {})
     with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
 def get_live_catalog():
     """GET /api/donuts (public). Returns the donut catalog list, or None."""
-    if not DOHNUT_API_URL:
-        return None
     try:
         data = _fetch_json("/api/donuts")
-        return data if isinstance(data, list) and data else None
-    except Exception as exc:  # fail-soft: seed fallback
-        logger.warning("live catalog fetch failed: %s", exc)
-        return None
+        if isinstance(data, list) and data:
+            return data
+    except Exception as exc:
+        logger.debug("live HTTP catalog fetch failed: %s", exc)
+
+    # Fallback to local SQLite if HTTP is unreachable
+    local_data = get_local_sqlite_catalog()
+    if local_data:
+        return local_data
+
+    return None
 
 
 def get_live_admin_stats():
@@ -69,8 +121,9 @@ def build_live_section():
     if not catalog:
         return None
 
+    _, source = resolve_dohnut_url()
     section = {
-        "source": "vercel:dowgnut-custom",
+        "source": source,
         "fetched_at": datetime.utcnow().isoformat() + "Z",
         "catalog_count": len(catalog),
         "catalog": catalog[:8],

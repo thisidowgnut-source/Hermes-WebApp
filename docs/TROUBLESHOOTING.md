@@ -18,6 +18,7 @@ lifecycle_status: "PRODUCTION / STABLE"
 
 | Version | Timestamp (MYT / ISO) | Author / Agent | Scope / Root Cause | Components Updated | Validation Proof |
 |:---|:---|:---|:---|:---|:---|
+| **`3.7.0`** | 2026-09-16 07:30:00<br>`2026-09-15T23:30:00Z` | Antigravity Specialist | Capability Health Probes, Restart Recovery, & Migration Diagnostics. | `docs/TROUBLESHOOTING.md`, `backend/services/capability_probe.py` | Pytest 100% pass, restart classification verified. |
 | **`3.6.0`** | 2026-09-12 16:35:00<br>`2026-09-12T08:35:00Z` | Antigravity Conductor | Panduan penyelesaian getaran butang (jitter) & pertindihan susun atur mobile. | `docs/TROUBLESHOOTING.md` | Runbook lengkap disahkan. |
 | **`3.0.0`** | 2026-07-27 18:00:00<br>`2026-07-27T10:00:00Z` | Hermes Dev Squad | Penyelesaian ralat WebSocket, ping leakage, dan zombie processes. | `scripts/cleanup_tasks.py` | Diagnostic runbook disahkan. |
 
@@ -60,4 +61,17 @@ lifecycle_status: "PRODUCTION / STABLE"
 ## 8. Mobile Bottom Action Buttons Overlap with Dock
 - **Cause:** The `main` container lacks sufficient safe-area bottom padding on mobile viewports.
 - **Fix:** Verify `main` has `padding-bottom: calc(140px + env(safe-area-inset-bottom, 28px)) !important` and list panels have `padding-bottom: 36px`. Confirm `.action-launchers-grid` uses `grid-template-columns: repeat(3, 1fr)` on `< 640px`.
+
+## 9. Mission Runs Stuck in STARTING or RUNNING Across Server Restart
+- **Cause:** Uvicorn or host machine was restarted while an AGY subprocess was active. The stdin/stdout pipes are closed and cannot be re-attached.
+- **Fix:** During startup, `MissionService.reconcile_startup()` automatically marks uncompleted runs as `INTERRUPTED` and logs a `run.interrupted` audit event. If manual reconciliation is needed, invoke `manager.reconcile_incomplete_runs()`. The operator may resume the mission using its persisted `provider_conversation_id`.
+
+## 10. Capability Health Probes Report "Degraded" or "Unavailable"
+- **AGY unavailable**: The AGY executable was not found in PATH or configured location. Action: Install AGY CLI or set `AGY_EXECUTABLE_PATH`.
+- **AGY degraded**: The executable exists but returned non-zero or timed out during `--version` / `--help` empirical test. Action: Verify binary permissions and dependencies.
+- **Hermes unavailable**: `HERMES_ADAPTER_ENABLED` is set to `false`. Action: Set `HERMES_HERMES_ADAPTER_ENABLED=true` in `.env` if Hermes coordinator tasks are desired.
+- **Database unavailable**: SQLite file cannot be locked or WAL mode is disabled. Action: Verify permissions on `var/lib/missions.db` and ensure disk space is sufficient.
+- **WebBridge unavailable**: Port 10087 is not listening. Action: Start GangNiaga WebBridge background service.
+- **Tunnel degraded/unavailable**: `cloudflared` process is not running. Action: Run `cloudflared tunnel --url http://127.0.0.1:9220`.
+
 

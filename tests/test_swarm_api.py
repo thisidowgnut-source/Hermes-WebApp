@@ -23,6 +23,7 @@ def setup_teardown_swarm():
     with swarm_manager._lock:
         swarm_manager.agents = {}
         swarm_manager._processes = {}
+        swarm_manager.delegations = {}
         swarm_manager._save_state_unlocked()
 
     yield
@@ -60,7 +61,7 @@ def test_spawn_agent():
     payload = {
         "name": "Test Auditor Agent",
         "task": "Perform automated security scan",
-        "command": "python -c \"import time; time.sleep(5)\""
+        "command": None  # default simulated agent command (custom commands with metacharacters are rejected by P0 hardening)
     }
     response = client.post("/api/swarm/spawn", json=payload)
     assert response.status_code == 200
@@ -95,7 +96,7 @@ def test_terminate_agent():
     spawn_res = client.post("/api/swarm/spawn", json={
         "name": "Terminator Target",
         "task": "Long running task",
-        "command": "python -c \"import time; time.sleep(60)\""
+        "command": None  # default simulated command (custom commands with metacharacters are rejected by P0 hardening)
     })
     agent_id = spawn_res.json()["agent"]["id"]
 
@@ -115,10 +116,9 @@ def test_terminate_agent_not_found():
 
 def test_swarm_websocket():
     with client.websocket_connect("/ws/swarm") as websocket:
-        # Initial telemetry broadcast
+        # Initial broadcast: server sends {"type":"init"} then periodic telemetry
         data = websocket.receive_json()
-        assert data.get("type") in ("telemetry", "swarm_telemetry")
-        assert "active_count" in data or ("data" in data and "active_count" in data["data"])
+        assert data.get("type") in ("init", "telemetry", "swarm_telemetry")
 
         # Send ping and consume any broadcast frames until pong
         websocket.send_text("ping")
@@ -133,12 +133,11 @@ def test_swarm_websocket():
                 break
         assert got_pong, "Expected pong response from WebSocket ping"
 
-        # Send spawn command over WebSocket
+        # Send spawn command over WebSocket (default command — custom commands with metacharacters rejected by P0 hardening)
         websocket.send_json({
             "type": "spawn",
             "name": "WS Subagent",
-            "task": "WS Spawn Task",
-            "command": "python -c \"import time; time.sleep(2)\""
+            "task": "WS Spawn Task"
         })
 
         spawned_msg = None
@@ -185,5 +184,108 @@ def test_swarm_manager_defensive_load_null_or_invalid(tmp_path):
     sm2 = SwarmManager(file_path=str(list_file))
     assert isinstance(sm2.agents, dict)
     assert sm2.agents == {}
+
+def test_delegate_goal_creates_orchestrator_and_subtasks():
+    payload = {
+        "goal": "Launch Autonomous AI Product Line",
+        "orchestrator_name": "Chief-Orchestrator",
+        "goal_mode": True,
+        "subtasks": [
+            {
+                "role": "researcher",
+                "name": "Market-Analyst",
+                "task": "Analyze competitor strategies",
+                "command": None
+            },
+            {
+                "role": "engineer",
+                "name": "Backend-Builder",
+                "task": "Implement distributed task scheduler",
+                "command": None
+            }
+        ]
+    }
+    response = client.post("/api/swarm/delegate", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    
+    del_data = data["delegation"]
+    assert del_data["goal"] == "Launch Autonomous AI Product Line"
+    assert del_data["goal_mode"] is True
+    assert del_data["orchestrator"] == "Chief-Orchestrator"
+    assert del_data["status"] == "orchestrated"
+    assert "delegation_id" in del_data
+    assert del_data["delegation_id"].startswith("del-")
+    assert len(del_data["subtasks"]) == 2
+    
+    # Verify subtask details
+    subtasks = del_data["subtasks"]
+    assert subtasks[0]["name"] == "Market-Analyst"
+    assert subtasks[0]["role"] == "researcher"
+    assert subtasks[0]["parent_id"] == del_data["delegation_id"]
+    assert subtasks[0]["goal"] == del_data["goal"]
+    
+    assert subtasks[1]["name"] == "Backend-Builder"
+    assert subtasks[1]["role"] == "engineer"
+    assert subtasks[1]["parent_id"] == del_data["delegation_id"]
+
+    # Verify orchestrator was spawned and registered in swarm
+    agents_res = client.get("/api/swarm/agents")
+    assert agents_res.status_code == 200
+    agents = agents_res.json()["agents"]
+    orch_found = any(a["name"] == "Chief-Orchestrator" and a["role"] == "orchestrator" for a in agents)
+    assert orch_found
+
+def test_delegate_goal_metacharacter_rejection():
+    payload = {
+        "goal": "Test metacharacter blocking",
+        "subtasks": [
+            {
+                "role": "attacker",
+                "name": "Malicious-Agent",
+                "task": "Attempt injection",
+                "command": "python -c 'print(1)' && rm -rf /"
+            }
+        ]
+    }
+    response = client.post("/api/swarm/delegate", json=payload)
+    assert response.status_code == 400
+    assert "shell metacharacters not allowed" in response.json()["detail"]
+
+def test_get_delegations_and_by_id():
+    # Initially empty
+    list_res = client.get("/api/swarm/delegations")
+    assert list_res.status_code == 200
+    assert list_res.json()["status"] == "success"
+    assert list_res.json()["count"] == 0
+
+    # Delegate a goal
+    payload = {
+        "goal": "Automate Telemetry Diagnostics",
+        "orchestrator_name": "Diag-Orchestrator",
+        "goal_mode": True,
+        "subtasks": []
+    }
+    del_res = client.post("/api/swarm/delegate", json=payload)
+    assert del_res.status_code == 200
+    del_id = del_res.json()["delegation"]["delegation_id"]
+
+    # List delegations
+    list_res2 = client.get("/api/swarm/delegations")
+    assert list_res2.status_code == 200
+    assert list_res2.json()["count"] == 1
+    assert list_res2.json()["delegations"][0]["delegation_id"] == del_id
+
+    # Get delegation by ID
+    get_res = client.get(f"/api/swarm/delegation/{del_id}")
+    assert get_res.status_code == 200
+    assert get_res.json()["delegation"]["delegation_id"] == del_id
+    assert get_res.json()["delegation"]["orchestrator"] == "Diag-Orchestrator"
+
+    # 404 for non-existent delegation
+    not_found = client.get("/api/swarm/delegation/non-existent-del-123")
+    assert not_found.status_code == 404
+
 
 

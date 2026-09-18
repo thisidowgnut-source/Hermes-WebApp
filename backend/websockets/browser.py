@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+import os
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from playwright.async_api import async_playwright
 
@@ -21,19 +22,34 @@ async def browser_ws(websocket: WebSocket):
     heartbeat_task = None
 
     try:
-        playwright = await async_playwright().start()
-        browser = await playwright.chromium.launch(headless=True)
-        browser_context = await browser.new_context(
-            viewport={"width": 1024, "height": 768},
-            device_scale_factor=1
-        )
-        browser_page = await browser_context.new_page()
-        
-        # Navigate to a default page
         try:
-            await asyncio.wait_for(browser_page.goto("about:blank"), timeout=2.0)
-        except Exception:
-            pass
+            playwright = await async_playwright().start()
+            chrome_paths = [
+                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            ]
+            exec_path = next((p for p in chrome_paths if os.path.exists(p)), None)
+            if exec_path:
+                browser = await playwright.chromium.launch(executable_path=exec_path, headless=True)
+            else:
+                browser = await playwright.chromium.launch(headless=True)
+            
+            browser_context = await browser.new_context(
+                viewport={"width": 1024, "height": 768},
+                device_scale_factor=1
+            )
+            browser_page = await browser_context.new_page()
+            
+            # Navigate to a default page
+            try:
+                await asyncio.wait_for(browser_page.goto("about:blank"), timeout=2.0)
+            except Exception:
+                pass
+        except Exception as init_err:
+            print(f"[BrowserWS] Playwright initialization warning: {init_err}")
+            browser = None
+            browser_context = None
+            browser_page = None
 
         async def stream_screen():
             while True:
@@ -54,7 +70,8 @@ async def browser_ws(websocket: WebSocket):
                 except Exception:
                     break
 
-        stream_task = asyncio.create_task(stream_screen())
+        if browser_page:
+            stream_task = asyncio.create_task(stream_screen())
         heartbeat_task = asyncio.create_task(heartbeat())
 
         while True:
@@ -76,20 +93,21 @@ async def browser_ws(websocket: WebSocket):
                 continue
             elif cmd_type == "pong":
                 continue
-            elif cmd_type == "click":
-                await browser_page.mouse.click(cmd.get("x", 0), cmd.get("y", 0))
-            elif cmd_type == "type":
-                await browser_page.keyboard.type(cmd.get("text", ""))
-            elif cmd_type == "keydown":
-                await browser_page.keyboard.press(cmd.get("key", ""))
-            elif cmd_type == "goto":
-                try:
-                    url = cmd.get("url", "https://google.com")
-                    if not url.startswith("http://") and not url.startswith("https://"):
-                        url = "https://" + url
-                    await browser_page.goto(url)
-                except Exception as e:
-                    await websocket.send_text(json.dumps({"type": "error", "msg": str(e)}))
+            elif browser_page and not browser_page.is_closed():
+                if cmd_type == "click":
+                    await browser_page.mouse.click(cmd.get("x", 0), cmd.get("y", 0))
+                elif cmd_type == "type":
+                    await browser_page.keyboard.type(cmd.get("text", ""))
+                elif cmd_type == "keydown":
+                    await browser_page.keyboard.press(cmd.get("key", ""))
+                elif cmd_type == "goto":
+                    try:
+                        url = cmd.get("url", "https://google.com")
+                        if not url.startswith("http://") and not url.startswith("https://"):
+                            url = "https://" + url
+                        await browser_page.goto(url)
+                    except Exception as e:
+                        await websocket.send_text(json.dumps({"type": "error", "msg": str(e)}))
                 
     except (WebSocketDisconnect, asyncio.CancelledError, Exception):
         pass

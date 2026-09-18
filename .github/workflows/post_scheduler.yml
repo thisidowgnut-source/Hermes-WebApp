@@ -1,0 +1,55 @@
+name: Headless Social Scheduler — Free GitOps Publishing
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'        # Every 2 hours
+    - cron: '30 10 * * *'        # Daily 10:30 AM (optimal engagement)
+  workflow_dispatch:             # Manual trigger via GitHub UI
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Checkout Queue & Scripts
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load Scheduled Posts Queue
+        id: load_queue
+        run: |
+          # queue.json format: array of {id, platform, content, schedule_at, status}
+          # Posts with status "pending" and schedule_at <= now are selected
+          python .github/scripts/select_due_posts.py --queue queue.json > due_posts.json
+          echo "Due posts count: $(cat due_posts.json | jq '. | length')"
+
+      - name: Publish to Social Platforms (Free APIs)
+        id: publish
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TIKTOK_SESSION_ID: ${{ secrets.TIKTOK_SESSION_ID }}
+          INSTAGRAM_USER_ID: ${{ secrets.IG_USER_ID }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+        run: |
+          python .github/scripts/post_to_social.py \
+            --input due_posts.json \
+            --platforms tiktok,instagram,x,threads,facebook \
+            --update-status published \
+            --queue-file queue.json
+
+      - name: Commit Published Status to Git
+        run: |
+          git config user.name "Hermes Auto-Publisher"
+          git config user.email "auto@hermes-os.local"
+          git add queue.json .github/scripts/post_to_social.log
+          git commit -m "Social post auto-published [$(date -Iseconds)]" || echo "No changes to commit"
+          git push
+
+      - name: Archive Artifacts (Optional — Zero DB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: social-publish-log
+          path: .github/scripts/post_to_social.log

@@ -2,7 +2,7 @@
 echo Mengaktifkan Auto-Start untuk Hermes WebApp...
 
 set "STARTUP_FOLDER=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-set "SOURCE_FILE=C:\Users\megat\Hermes-WebApp\hermes_startup.vbs"
+set "SOURCE_FILE=%~dp0hermes_startup.vbs"
 
 if not exist "%SOURCE_FILE%" (
     echo [ERROR] hermes_startup.vbs tidak dijumpai!

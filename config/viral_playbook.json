@@ -1,0 +1,83 @@
+{
+  "hooks": {
+    "question_curiosity": [
+      "Ramai yang tanya kenapa donut kitorang tak pernah kempis lepas sejuk...",
+      "Korang tahu tak kenapa donut biasa cepat lemau tapi yang ni kekal gebu?"
+    ],
+    "shock_diet": [
+      "Jangan tengok video ni kalau korang tengah diet atau lapar...",
+      "Tolong jangan salahkan kitorang kalau korang termimpi-mimpi donut ni malam nanti..."
+    ],
+    "behind_the_scenes_secret": [
+      "Rahsia doh gebu 48 jam yang bakeri lain takkan bagitahu korang...",
+      "Hari ni saya buka rahsia macam mana kitorang bancuh filling karamel leleh..."
+    ],
+    "asmr_crunch": [
+      "Dengar bunyi kerak rangup ni bila disira gula panas...",
+      "Dengar betul-betul bila donut ni dipotong dua... gebu lembut macam kapas."
+    ]
+  },
+  "sensory_words": [
+    "gebu",
+    "rangup",
+    "leleh",
+    "karamel",
+    "panas",
+    "uli",
+    "mentega",
+    "coklat",
+    "sira",
+    "lembut",
+    "berasap",
+    "tarik"
+  ],
+  "storytelling_arcs": {
+    "struggle_mastery": "Saya mula berniaga donut ni dari dapur rumah kecil...",
+    "customer_craving": "Pagi tadi ada akak ni datang jauh dari Bangi semata-mata nak rasa...",
+    "raw_kitchen_transparency": "Hari ni saya tunjuk dapur sebenar kitorang..."
+  },
+  "comment_loops": [
+    "Korang team Kuih Burger donut atau team Matcha White Choco?",
+    "Antara rangup di luar dengan gebu di dalam, korang prefer yang mana?",
+    "Tag kawan korang yang kalau nampak donut macam ni terus hilang diet!"
+  ],
+  "scarcity_triggers": [
+    "Batch petang ni kita goreng 50 kotak je panas-panas...",
+    "Siapa cepat dia dapat untuk drop petang ni..."
+  ],
+  "trending_audio": [
+    {
+      "id": "ka_acoustic_folk",
+      "title": "Khairul Aming Kitchen Acoustic (Warm Wholesome)",
+      "artist": "Acoustic Fingerstyle Chill",
+      "bpm": 110,
+      "recommended_for": ["struggle_mastery", "behind_the_scenes_secret"],
+      "audio_cue": "0:00-0:03 Senyap (Focus on Voiceover Hook) -> 0:03 Acoustic guitar masuk perlahan -> 0:15 Crescendo semasa leleh karamel"
+    },
+    {
+      "id": "asmr_binaural_crunch",
+      "title": "Binaural Foodie ASMR Beats",
+      "artist": "Lo-Fi Glaze Drip Studio",
+      "bpm": 88,
+      "recommended_for": ["asmr_crunch"],
+      "audio_cue": "0:00-0:04 Pure Crunch ASMR (Tiada Muzik) -> 0:04 Lo-fi kick & deep bassline drop semasa doh dipotong"
+    },
+    {
+      "id": "pasar_malam_funk",
+      "title": "Pasar Malam Groovy Funk Pop",
+      "artist": "KL City Vibes",
+      "bpm": 128,
+      "recommended_for": ["customer_craving", "raw_kitchen_transparency"],
+      "audio_cue": "Beat drop pada saat ke-3 sejajar dengan teks hook popping on screen"
+    },
+    {
+      "id": "melayu_klasik_lofi",
+      "title": "Nostalgia Malaya Klasik Lo-Fi",
+      "artist": "Malaya Vinyl Beats",
+      "bpm": 85,
+      "recommended_for": ["struggle_mastery"],
+      "audio_cue": "Bunyi jarum piring hitam vintage -> Rentak santai mengiringi uli doh mentega"
+    }
+  ]
+}
+
